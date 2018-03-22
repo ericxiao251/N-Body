@@ -39,26 +39,26 @@ void particles_gen_by_type(double **P, int type, int cnt) {
 
 /*------------------------- Global Functions -----------------------------------*/
 void print_properties_h(void) {
-	printf("Light Particle:\n");
-	printf("  %f <= velocity <= %f\n", velocityLightMin, velocityLightMax);
-	printf("  %f <=   mass   <= %f\n", massLightMin, massLightMax);
-	printf("Medium Particle:\n");
-	printf("  %f <= velocity <= %f\n", velocityMediumMin, velocityMediumMax);
-	printf("  %f <=   mass   <= %f\n", massMediumMin, massMediumMax);
-	printf("Heavy Particle:\n");
-	printf("  %f <= velocity <= %f\n", velocityHeavyMin, velocityHeavyMax);
-	printf("  %f <=   mass   <= %f\n", massHeavyMin, massHeavyMax);
+	LOG(("Light Particle:\n"));
+	LOG(("  %f <= velocity <= %f\n", velocityLightMin, velocityLightMax));
+	LOG(("  %f <=   mass   <= %f\n", massLightMin, massLightMax));
+	LOG(("Medium Particle:\n"));
+	LOG(("  %f <= velocity <= %f\n", velocityMediumMin, velocityMediumMax));
+	LOG(("  %f <=   mass   <= %f\n", massMediumMin, massMediumMax));
+	LOG(("Heavy Particle:\n"));
+	LOG(("  %f <= velocity <= %f\n", velocityHeavyMin, velocityHeavyMax));
+	LOG(("  %f <=   mass   <= %f\n", massHeavyMin, massHeavyMax));
 }
 
 void print_particle(double *p, int id) {
-	printf("{\n");
-	printf("\tparticle_id: %d,\n", id);
-	printf("\tmass = %f,\n", p[WEIGHT_COL]);
-	printf("\tposition: x = %f, ", p[POS_X_COL]);
-	printf("y = %f,\n", p[POS_Y_COL]);
-	printf("\tvelocity: x = %f, ", p[VOL_X_COL]);
-	printf("y = %f,\n", p[VOL_Y_COL]);
-	printf("}\n");
+	LOG(("{\n"));
+	LOG(("\tparticle_id: %d,\n", id));
+	LOG(("\tmass = %f,\n", p[WEIGHT_COL]));
+	LOG(("\tposition: x = %f, ", p[POS_X_COL]));
+	LOG(("y = %f,\n", p[POS_Y_COL]));
+	LOG(("\tvelocity: x = %f, ", p[VOL_X_COL]));
+	LOG(("y = %f, v = %f,\n", p[VOL_Y_COL], sqrt(p[VOL_X_COL] * p[VOL_X_COL] + p[VOL_Y_COL] * p[VOL_Y_COL])));
+	LOG(("}\n"));
 }
 
 void print_all_particles(double **P, int numParticle) {

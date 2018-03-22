@@ -3,7 +3,7 @@ CFLAGS=-c -g -Wall -std=c++11
 LDFLAGS=-lm
 OBJECTS=$(SOURCES:.cpp=.o)
 
-SOURCES=main.cpp savebmp.c util.c
+SOURCES=main.cpp savebmp.c util.c cyclic_dist.c
 
 EXECUTABLE=x.project
 
