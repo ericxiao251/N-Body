@@ -1,5 +1,5 @@
-#ifndef properties_h
-#define properties_h
+#ifndef __PROPERTIES_H__
+#define __PROPERTIES_H__
 
 #include "vector3d.h"
 

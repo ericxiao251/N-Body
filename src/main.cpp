@@ -1,53 +1,67 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "define.h"
 
-#include <string.h>
+int main(int argc, char* argv[]) {
+	srand (1234);
+	int i, j, num_of_process, my_rank, ave_particle, have_extra;
 
-#include <mpi.h>
-#include <math.h>
-
-#include "vector3d.h"
-#include "savebmp.h"
-#include "properties.h"
-
-#define epsilon 0.000000000000000222
-
-int main(int argc, char* argv[]){
-	
-	if( argc != 10){
-		printf("Usage: %s numParticlesLight numParticleMedium numParticleHeavy numSteps subSteps timeSubStep imageWidth imageHeight imageFilenamePrex\n", argv[0]);
+	if (argc != 10) {
+		printf("Usage: %s numParticlesLight numParticleMedium numParticleHeavy numSteps subSteps timeSubStep imageWidth imageHeight imageFilenamePrefix\n", argv[0]);
 	}
 
+	// MPI bookkeeping
 	MPI_Init(&argc,&argv);
-
-	int p, my_rank;
-
 	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &p);
+	MPI_Comm_size(MPI_COMM_WORLD, &num_of_process);
 
-	//variables
-	int numParticlesLight = 0;
-	int numParticleMedium = 0;
-	int numParticleHeavy = 0;
+	// Input
+	int numParticlesLight = atof(argv[1]);
+	int numParticleMedium = atof(argv[2]);
+	int numParticleHeavy = atof(argv[3]);
+	int totalNumParticle = numParticlesLight + numParticleMedium + numParticleHeavy;
 
-	int numSteps = 0;
-	int subSteps = 0;
-	double timeSubStep;
+	int numSteps = atof(argv[4]);
+	int subSteps = atof(argv[5]);
+	double timeSubStep = atof(argv[6]);
 
-	int width, height;
+	int width = atof(argv[7]);
+	int height = atof(argv[8]);
+	unsigned char* image = (unsigned char*)malloc(width * height * sizeof(unsigned char));
 
-	unsigned char* image;
+	// Particle per slave node
+	ave_particle = totalNumParticle / (num_of_process - 1);
+	have_extra = totalNumParticle % (num_of_process - 1);
 
-	//root node stuff goes here
-	if(my_rank == 0){
+	/*--------------------------------- Master Node ------------------------------------------*/
+	if (my_rank == 0) {
+		// Initilize Particles
+		double *P_data = (double *)malloc(totalNumParticle * PROPERTIES_COUNT * sizeof(double));
+		double **P = (double **) malloc(totalNumParticle * sizeof(double *));
+		for (i = 0; i < totalNumParticle; ++i) {
+			P[i] = &P_data[PROPERTIES_COUNT * i];
+		}
+		particles_gen(P, numParticlesLight, numParticleMedium, numParticleHeavy);
+
+		// Print particles
+		print_properties_h();
+		print_all_particles(P, totalNumParticle);
+
+		// Cyclic distribute particles
+		cyclic_master_send(P, totalNumParticle, num_of_process, ave_particle, have_extra);
 
 
+		//Save the image
+		// saveBMP(argv[9], image, width, height);
 
-		//almost done, just save the image
-		saveBMP(argv[9], image, width, height);
+		// Release Memory
+		free(P);
+		free(P_data);
 	}
-	//all other nodes do this
-	else{
+	/*--------------------------------- Slave Node ------------------------------------------*/
+	else {
+		double *P_data, **P;
+
+		// Receive particles sent from master node
+		block_cyclic_slave_receive(P, P_data, my_rank, num_of_process, ave_particle, have_extra);
 
 	}
 
