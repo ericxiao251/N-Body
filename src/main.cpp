@@ -58,11 +58,35 @@ int main(int argc, char* argv[]) {
 	}
 	/*--------------------------------- Slave Node ------------------------------------------*/
 	else {
-		double *P_data, **P;
+		double *P_data, **P, *P_force_data, **P_force;
+		int i, init_p_id, total_p_send;
+		MPI_Status status;
 
 		// Receive particles sent from master node
-		block_cyclic_slave_receive(P, P_data, my_rank, num_of_process, ave_particle, have_extra);
 
+		MPI_Recv(&init_p_id, 1, MPI_INT, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
+		MPI_Recv(&total_p_send, 1, MPI_INT, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
+
+		P_data = (double *)malloc(total_p_send * PROPERTIES_COUNT * sizeof(double));
+		P_force_data = (double *)malloc(total_p_send * PROPERTIES_COUNT * sizeof(double));
+		P = (double **) malloc(total_p_send * sizeof(double *));
+		P_force = (double **) malloc(total_p_send * sizeof(double *));
+		for (i = 0; i < total_p_send; ++i) {
+			P[i] = &P_data[PROPERTIES_COUNT * i];
+			P_force[i] = &P_force_data[PROPERTIES_COUNT * i];
+			MPI_Recv(&P[i][0], PROPERTIES_COUNT, MPI_DOUBLE, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
+			LOG(("Slave Node %d: Receive particle %f from Master Node\n", my_rank, P[i][ID_COL]));
+		}
+
+		// Calculate forces
+		cyclic_slave_cal_force(P, P_data, P_force, P_force_data, my_rank, num_of_process, ave_particle, have_extra, totalNumParticle, total_p_send);
+
+
+		// Release Memory
+		free(P);
+		free(P_data);
+		free(P_force_data);
+		free(P_force);
 	}
 
 	free(image);
