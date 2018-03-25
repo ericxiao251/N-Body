@@ -1,5 +1,4 @@
 #include "define.h"
-#include "properties.h"
 
 void location_gen(double *x, double *y) {
 	*x = POS_MIN_X + (POS_MAX_X - POS_MIN_X) * drand48();
@@ -30,7 +29,9 @@ void weight_gen(double *w, int type) {
 
 void particles_gen_by_type(double **P, int type, int cnt) {
 	int i;
+	static double id = 0.0;
 	for (i = 0; i < cnt; ++i) {
+		P[i][ID_COL] = id++;
 		location_gen(&P[i][POS_X_COL], &P[i][POS_Y_COL]);
 		velocity_gen(&P[i][VOL_X_COL], &P[i][VOL_Y_COL], type);
 		weight_gen(&P[i][WEIGHT_COL], type);
@@ -50,9 +51,9 @@ void print_properties_h(void) {
 	LOG(("  %f <=   mass   <= %f\n", massHeavyMin, massHeavyMax));
 }
 
-void print_particle(double *p, int id) {
+void print_particle(double *p) {
 	LOG(("{\n"));
-	LOG(("\tparticle_id: %d,\n", id));
+	LOG(("\tparticle_id: %f,\n", p[ID_COL]));
 	LOG(("\tmass = %f,\n", p[WEIGHT_COL]));
 	LOG(("\tposition: x = %f, ", p[POS_X_COL]));
 	LOG(("y = %f,\n", p[POS_Y_COL]));
@@ -64,7 +65,7 @@ void print_particle(double *p, int id) {
 void print_all_particles(double **P, int numParticle) {
 	int i;
 	for (i = 0; i < numParticle; ++i) {
-		print_particle(P[i], i);
+		print_particle(P[i]);
 	}
 }
 
@@ -72,4 +73,17 @@ void particles_gen(double **P, int light_cnt, int medium_cnt, int heavy_cnt) {
 	particles_gen_by_type(&P[0],                      LIGHT,  light_cnt);
 	particles_gen_by_type(&P[light_cnt],              MEDIUM, medium_cnt);
 	particles_gen_by_type(&P[light_cnt + medium_cnt], HEAVY,  heavy_cnt);
+}
+
+void update(unsigned char* image, double **P, double **P_force, int total_p_cnt, int img_width, int img_height, double step_size) {
+	int i, cnt = 0;
+	
+	initilize_img(image, img_width, img_height);
+	for (i = 0; i < total_p_cnt; ++i) {
+		update_p(P[i], P_force[(int)(P[i][ID_COL])], step_size);
+		if (update_img(image, P[i], img_width, img_height) > 0) {
+			++cnt;
+		}
+	}
+	LOG(("UPDATE IMG: %d particles in range of the img.\n", cnt));
 }
