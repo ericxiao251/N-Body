@@ -21,13 +21,14 @@
 
 /*--------------------- Data structure ----------------------*/
 // Particle
-#define PARTICLE_PROPERTIES_COUNT 6 // p_id, p_weight, p_pos_x, p_pos_y, p_vol_x, p_vol_y
+#define PARTICLE_PROPERTIES_COUNT 7 // p_id, p_weight, p_pos_x, p_pos_y, p_vol_x, p_vol_y, p_type
 #define ID_COL 0
 #define WEIGHT_COL 1
 #define POS_X_COL 2
 #define POS_Y_COL 3
 #define VOL_X_COL 4
 #define VOL_Y_COL 5
+#define TYPE_COL 6
 
 // Force
 #define FORCE_PROPERTIES_COUNT 4 // force_x, force_y, force_to(p_id), force_from(p_id)

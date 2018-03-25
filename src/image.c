@@ -72,19 +72,16 @@ int update_img(unsigned char* image, double *p, int img_width, int img_height) {
 	}
 
 	unsigned char r, g, b;
-	if (massLightMin <= p[WEIGHT_COL] && p[WEIGHT_COL] <= massLightMax) {
-		r = LIGHT_R;
-		g = LIGHT_G;
-		b = LIGHT_B;
-	} else if (massMediumMin <= p[WEIGHT_COL] && p[WEIGHT_COL] <= massMediumMax) {
-		r = MEDIUM_R;
-		g = MEDIUM_G;
-		b = MEDIUM_B;
-	} else {
-		r = HEAVY_R;
-		g = HEAVY_G;
-		b = HEAVY_B;
-	}
+	r = p[TYPE_COL] == LIGHT ? LIGHT_R :
+		p[TYPE_COL] == MEDIUM ? MEDIUM_R :
+		p[TYPE_COL] == HEAVY ? HEAVY_R : 0;
+	g = p[TYPE_COL] == LIGHT ? LIGHT_G :
+		p[TYPE_COL] == MEDIUM ? MEDIUM_G :
+		p[TYPE_COL] == HEAVY ? HEAVY_G : 0;
+	b = p[TYPE_COL] == LIGHT ? LIGHT_B :
+		p[TYPE_COL] == MEDIUM ? MEDIUM_B :
+		p[TYPE_COL] == HEAVY ? HEAVY_B : 0;
+
 
 	image[(y * img_width + x) * 3 + 0] = r;
 	image[(y * img_width + x) * 3 + 1] = g;

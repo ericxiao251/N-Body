@@ -37,6 +37,7 @@ void particles_gen_by_type(double **P, int type, int cnt) {
 	static double id = 0.0;
 	for (i = 0; i < cnt; ++i) {
 		P[i][ID_COL] = id++;
+		P[i][TYPE_COL] = (double)type;
 		location_gen(&P[i][POS_X_COL], &P[i][POS_Y_COL], type);
 		velocity_gen(&P[i][VOL_X_COL], &P[i][VOL_Y_COL], type);
 		weight_gen(&P[i][WEIGHT_COL], type);
@@ -59,6 +60,7 @@ void print_properties_h(void) {
 void print_particle(double *p) {
 	LOG(("{\n"));
 	LOG(("\tparticle_id: %f,\n", p[ID_COL]));
+	LOG(("\tparticle_type: %f,\n", p[TYPE_COL]));
 	LOG(("\tmass = %f,\n", p[WEIGHT_COL]));
 	LOG(("\tposition: x = %f, ", p[POS_X_COL]));
 	LOG(("y = %f,\n", p[POS_Y_COL]));
