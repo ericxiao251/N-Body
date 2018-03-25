@@ -43,6 +43,8 @@
 #define LIGHT 0
 #define MEDIUM 1
 #define HEAVY 2
+#define DUMMY 3
+#define DUMMY_WEIGHT 0.0
 #define MASTER_TO_SLAVE_TAG 883216 // arbitrary tag for messages sent from master to slaves
 #define SLAVE_TO_MASTER_TAG 886123 // arbitrary tag for messages sent from slaves to master
 #define SLAVE_TO_SLAVE_TAG 666123 // arbitrary tag for messages sent from slaves to master

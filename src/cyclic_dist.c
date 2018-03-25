@@ -101,6 +101,10 @@ void cyclic_slave_cal_force(double **P, int local_rank, int num_processes, int a
 	/*------------------------------ Initial Calculation Phase ----------------------------------------*/
 	for (i = 0; i < total_p_send-1; ++i) {
 		for (j = i + 1; j < total_p_send; ++j) {
+			if (P[i][WEIGHT_COL] == DUMMY_WEIGHT || P[j][WEIGHT_COL] == DUMMY_WEIGHT) {
+				// skip padding particles
+				continue;
+			}
 			///////////////LOG(("Slave Node %d: Calculate F%d, %d\n", local_rank, (int)P[i][ID_COL], (int)P[j][ID_COL]));
 			grav_force_particles(force_list_pnters[i], P[i], P[j]);
 			force_list_pnters[i]->next = (force_list_node *)malloc(sizeof(force_list_node));
@@ -127,7 +131,8 @@ void cyclic_slave_cal_force(double **P, int local_rank, int num_processes, int a
 
 		for (i = 0; i < total_p_send; ++i) {
 			for (j = 0; j < total_p_send; ++j) {
-				if (P_received[j][ID_COL] <= P[i][ID_COL]) {
+				if (P[i][WEIGHT_COL] == DUMMY_WEIGHT || P_received[j][WEIGHT_COL] == DUMMY_WEIGHT 
+						|| P_received[j][ID_COL] <= P[i][ID_COL]) {
 					continue;
 				}
 				grav_force_particles(force_list_pnters[i], P[i], P_received[j]);
