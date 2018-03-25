@@ -1,7 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "define.h"
 #include <assert.h>
-#include <math.h>
 
 void saveBMP(const char* filename, const unsigned char* result, int w, int h){
     printf("saving image...\n");
@@ -49,4 +47,46 @@ void saveBMP(const char* filename, const unsigned char* result, int w, int h){
 	}
 	fclose(f);
     printf("finished saving!\n");
+}
+
+
+void initilize_img(unsigned char* image, int img_width, int img_height) {
+	int i, j;
+
+	for (i = 0; i < img_height; ++i) {
+		for (j = 0; j < img_width; ++j) {
+			image[(j * img_width + i) * 3 + 0] = (unsigned char)0;
+			image[(j * img_width + i) * 3 + 1] = (unsigned char)0;
+			image[(j * img_width + i) * 3 + 2] = (unsigned char)0;
+		}
+	}
+}
+
+void update_img(unsigned char* image, double *p, int img_width, int img_height) {
+	// POS_MAX_X POS_MIN_X POS_MAX_Y POS_MIN_Y
+	int x = (int)(X_RNG * p[POS_X_COL] / (double)img_width);
+	int y = (int)(Y_RNG * p[POS_Y_COL] / (double)img_height);
+	if (x < 0 || y < 0 || x >= img_width || y >= img_height) {
+		// Out of range
+		return;
+	}
+
+	unsigned char r, g, b;
+	if (massLightMin <= p[WEIGHT_COL] <= massLightMax) {
+		r = LIGHT_R;
+		g = LIGHT_G;
+		b = LIGHT_B;
+	} else if (massMediumMin <= p[WEIGHT_COL] <= massMediumMax) {
+		r = MEDIUM_R;
+		g = MEDIUM_G;
+		b = MEDIUM_B;
+	} else {
+		r = HEAVY_R;
+		g = HEAVY_G;
+		b = HEAVY_B;
+	}
+
+	image[(y * img_width + x) * 3 + 0] = r;
+	image[(y * img_width + x) * 3 + 1] = g;
+	image[(y * img_width + x) * 3 + 2] = b;
 }
