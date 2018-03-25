@@ -75,12 +75,12 @@ void particles_gen(double **P, int light_cnt, int medium_cnt, int heavy_cnt) {
 	particles_gen_by_type(&P[light_cnt + medium_cnt], HEAVY,  heavy_cnt);
 }
 
-void update(unsigned char* image, double **P, double **P_force, int total_p_cnt, int img_width, int img_height) {
+void update(unsigned char* image, double **P, double **P_force, int total_p_cnt, int img_width, int img_height, double step_size) {
 	int i, cnt = 0;
 	
 	initilize_img(image, img_width, img_height);
 	for (i = 0; i < total_p_cnt; ++i) {
-		update_p(P[i], P_force[(int)(P[i][ID_COL])]);
+		update_p(P[i], P_force[(int)(P[i][ID_COL])], step_size);
 		if (update_img(image, P[i], img_width, img_height) > 0) {
 			++cnt;
 		}

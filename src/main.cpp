@@ -34,8 +34,10 @@ int main(int argc, char* argv[]) {
 	/*--------------------------------- Master Node ------------------------------------------*/
 	if (my_rank == 0) {
 		// Initilize Particles
-		int i;
-		double *P_data, **P, *P_force_data, **P_force;
+		int i, j, k;
+		double *P_data, **P, *P_force_data, **P_force, time = 0.0;
+		char img_name[20];
+		char img_full_path[100];
 
 		P_data = (double *)malloc(total_p_cnt * PARTICLE_PROPERTIES_COUNT * sizeof(double));
 		P = (double **) malloc(total_p_cnt * sizeof(double *));
@@ -52,61 +54,66 @@ int main(int argc, char* argv[]) {
 		// Start iteration
 		// Print particles
 		print_properties_h();
-		print_all_particles(P, total_p_cnt);
+		for (j = 0; j < numSteps; ++j) {
+			print_all_particles(P, total_p_cnt);
+			for (k = 0; k < subSteps; ++k) {
+				time += timeSubStep;
+				printf("============== Current Time is %lf =============\n", time);
+				// Cyclic distribute particles
+				cyclic_master_send(P, total_p_cnt, num_processes, ave_particle, have_extra);
 
-		// Cyclic distribute particles
-		cyclic_master_send(P, total_p_cnt, num_processes, ave_particle, have_extra);
+				// Receive and sum forces;
+				for (i = 0; i < total_p_cnt * FORCE_SUM_PROPERTIES_COUNT; ++i) {
+					P_force_data[i] = 0.0;
+				}
+				cyclic_master_receive(P_force, num_processes);
+				// Update P and img based on forces
+				update(image, P, P_force, total_p_cnt, img_width, img_height, timeSubStep);
+			}
+			// Save the image
+			snprintf(img_name, sizeof(char) * 32, "0%i.bmp", j);
 
-		// Receive and sum forces;
-		for (i = 0; i < total_p_cnt * FORCE_SUM_PROPERTIES_COUNT; ++i) {
-			P_force_data[i] = 0.0;
+			strcpy(img_full_path, argv[9]);
+			strcat(img_full_path, img_name);
+			saveBMP(img_full_path, image, img_width, img_height);
 		}
-		cyclic_master_receive(P_force, num_processes);
-
-		// Update P and img based on forces
-		update(image, P, P_force, total_p_cnt, img_width, img_height);
-
-		// Save the image
-		saveBMP(argv[9], image, img_width, img_height);
-
 		// Release Memory
 		free(P);
 		free(P_data);
 		free(P_force_data);
 		free(P_force);
+		free(image);
 	}
 	/*--------------------------------- Slave Node ------------------------------------------*/
 	else {
-		int i, init_p_id, total_p_send;
+		int i, j, k, init_p_id, total_p_send;
 		MPI_Status status;
 		double *P_data, **P;
 
 		// Receive particles sent from master node
+		for (j = 0; j < numSteps; ++j) {
+			for (k = 0; k < subSteps; ++k) {
+				MPI_Recv(&init_p_id, 1, MPI_INT, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
+				MPI_Recv(&total_p_send, 1, MPI_INT, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
+				
+				P_data = (double *)malloc(total_p_send * PARTICLE_PROPERTIES_COUNT * sizeof(double));
+				P = (double **) malloc(total_p_send * sizeof(double *));
 
-		MPI_Recv(&init_p_id, 1, MPI_INT, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
-		MPI_Recv(&total_p_send, 1, MPI_INT, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
-
-		P_data = (double *)malloc(total_p_send * PARTICLE_PROPERTIES_COUNT * sizeof(double));
-		P = (double **) malloc(total_p_send * sizeof(double *));
+				for (i = 0; i < total_p_send; ++i) {
+					P[i] = &P_data[PARTICLE_PROPERTIES_COUNT * i];
+					MPI_Recv(&P[i][0], PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
+					LOG(("Slave Node %d: Receive particle %f from Master Node\n", my_rank, P[i][ID_COL]));
+				}
+				// Calculate forces
+				cyclic_slave_cal_force(P, my_rank, num_processes, ave_particle, have_extra, total_p_cnt, total_p_send);
 		
-		for (i = 0; i < total_p_send; ++i) {
-			P[i] = &P_data[PARTICLE_PROPERTIES_COUNT * i];
-			MPI_Recv(&P[i][0], PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
-			LOG(("Slave Node %d: Receive particle %f from Master Node\n", my_rank, P[i][ID_COL]));
+				// Release Memory
+				free(P);
+				free(P_data);
+			}
 		}
 
-		// Calculate forces
-		cyclic_slave_cal_force(P, my_rank, num_processes, ave_particle, have_extra, total_p_cnt, total_p_send);
-
-
-		// Release Memory
-		free(P);
-		free(P_data);
-
 	}
-
-	free(image);
-
 	MPI_Finalize();
 	return 0;
 }

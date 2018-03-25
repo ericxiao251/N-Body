@@ -20,11 +20,11 @@ void grav_force_particles(force_list_node* force, double *p1, double *p2) {
 	force->f12_y = y;
 }
 
-void update_p(double *p, double *p_force) {
-	p[POS_X_COL] += p[VOL_X_COL] * STEP_SIZE;
-	p[POS_Y_COL] += p[VOL_Y_COL] * STEP_SIZE;
-	p[VOL_X_COL] += p_force[X_COL] * STEP_SIZE / p[WEIGHT_COL];
-	p[VOL_Y_COL] += p_force[Y_COL] * STEP_SIZE / p[WEIGHT_COL];
+void update_p(double *p, double *p_force, double step_size) {
+	p[POS_X_COL] += p[VOL_X_COL] * step_size;
+	p[POS_Y_COL] += p[VOL_Y_COL] * step_size;
+	p[VOL_X_COL] += p_force[X_COL] * step_size / p[WEIGHT_COL];
+	p[VOL_Y_COL] += p_force[Y_COL] * step_size / p[WEIGHT_COL];
 }
 
 void print_force_list(force_list_node *list, force_list_node *end_list) {
