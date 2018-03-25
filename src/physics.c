@@ -1,10 +1,10 @@
 #include "define.h"
 
 void grav_force(double *f12_x, double *f12_y, double mass1, double mass2, double s1_x, double s1_y, double s2_x, double s2_y) {
-	double dist_sq, scalar;
+	double dist, scalar;
 
-	dist_sq = pow(s1_x - s2_x, 2) + pow(s1_y - s2_y, 2);
-	scalar = (GRAVITY * mass1 * mass2) / dist_sq;
+	dist = sqrt(pow(s1_x - s2_x, 2) + pow(s1_y - s2_y, 2));
+	scalar = (GRAVITY * mass1 * mass2) / pow(dist, 3);
 	*f12_x = scalar * (s2_x - s1_x);
 	*f12_y = scalar * (s2_y - s1_y);
 }

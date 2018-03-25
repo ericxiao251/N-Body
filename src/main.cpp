@@ -50,13 +50,10 @@ int main(int argc, char* argv[]) {
 		}
 		particles_gen(P, numParticlesLight, numParticleMedium, numParticleHeavy);
 
-
-		// Start iteration
-		// Print particles
 		print_properties_h();
 		for (j = 0; j < numSteps; ++j) {
-			print_all_particles(P, total_p_cnt);
 			for (k = 0; k < subSteps; ++k) {
+				print_all_particles(P, total_p_cnt);
 				time += timeSubStep;
 				printf("============== Current Time is %lf =============\n", time);
 				// Cyclic distribute particles

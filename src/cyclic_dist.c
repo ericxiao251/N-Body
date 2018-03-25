@@ -138,9 +138,9 @@ void cyclic_slave_cal_force(double **P, int local_rank, int num_processes, int a
 			}
 		}
 	}
-	//for (i = 0; i < total_p_send; ++i) {
-	//	print_force_list(force_lists[i], force_list_pnters[i]);
-	//}
+	for (i = 0; i < total_p_send; ++i) {
+		print_force_list(force_lists[i], force_list_pnters[i]);
+	}
 
 	/*------------------------------ Send back --------------------------------------------*/
 	cyclic_slave_send_back(force_lists, force_list_pnters, force_cnt, total_p_send, local_rank);
