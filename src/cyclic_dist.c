@@ -100,7 +100,7 @@ void cyclic_slave_cal_force(double **P, int local_rank, int num_processes, int a
 	/*------------------------------ Initial Calculation Phase ----------------------------------------*/
 	for (i = 0; i < total_p_send-1; ++i) {
 		for (j = i + 1; j < total_p_send; ++j) {
-			LOG(("Slave Node %d: Calculate F%d, %d\n", local_rank, (int)P[i][ID_COL], (int)P[j][ID_COL]));
+			///////////////LOG(("Slave Node %d: Calculate F%d, %d\n", local_rank, (int)P[i][ID_COL], (int)P[j][ID_COL]));
 			grav_force_particles(force_list_pnters[i], P[i], P[j]);
 			force_list_pnters[i]->next = (force_list_node *)malloc(sizeof(force_list_node));
 			force_list_pnters[i] = force_list_pnters[i]->next;
@@ -139,7 +139,7 @@ void cyclic_slave_cal_force(double **P, int local_rank, int num_processes, int a
 					continue;
 				}
 				grav_force_particles(force_list_pnters[i], P[i], P_received[j]);
-				LOG(("Slave Node %d: Calculate F%d, %d\n", local_rank, (int)P[i][ID_COL], (int)P_received[j][ID_COL]));
+				/////////////////LOG(("Slave Node %d: Calculate F%d, %d\n", local_rank, (int)P[i][ID_COL], (int)P_received[j][ID_COL]));
 				force_list_pnters[i]->next = (force_list_node *)malloc(sizeof(force_list_node));
 				force_list_pnters[i] = force_list_pnters[i]->next;
 				++force_cnt;

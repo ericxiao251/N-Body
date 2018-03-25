@@ -62,21 +62,21 @@ void initilize_img(unsigned char* image, int img_width, int img_height) {
 	}
 }
 
-void update_img(unsigned char* image, double *p, int img_width, int img_height) {
+int update_img(unsigned char* image, double *p, int img_width, int img_height) {
 	// POS_MAX_X POS_MIN_X POS_MAX_Y POS_MIN_Y
 	int x = (int)(X_RNG * p[POS_X_COL] / (double)img_width);
 	int y = (int)(Y_RNG * p[POS_Y_COL] / (double)img_height);
 	if (x < 0 || y < 0 || x >= img_width || y >= img_height) {
 		// Out of range
-		return;
+		return 0;
 	}
 
 	unsigned char r, g, b;
-	if (massLightMin <= p[WEIGHT_COL] <= massLightMax) {
+	if (massLightMin <= p[WEIGHT_COL] && p[WEIGHT_COL] <= massLightMax) {
 		r = LIGHT_R;
 		g = LIGHT_G;
 		b = LIGHT_B;
-	} else if (massMediumMin <= p[WEIGHT_COL] <= massMediumMax) {
+	} else if (massMediumMin <= p[WEIGHT_COL] && p[WEIGHT_COL] <= massMediumMax) {
 		r = MEDIUM_R;
 		g = MEDIUM_G;
 		b = MEDIUM_B;
@@ -89,4 +89,5 @@ void update_img(unsigned char* image, double *p, int img_width, int img_height) 
 	image[(y * img_width + x) * 3 + 0] = r;
 	image[(y * img_width + x) * 3 + 1] = g;
 	image[(y * img_width + x) * 3 + 2] = b;
+	return 1;
 }

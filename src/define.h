@@ -48,7 +48,7 @@
 #define SLAVE_TO_SLAVE_TAG 666123 // arbitrary tag for messages sent from slaves to master
 
 /*--------------------- Constants ----------------------*/
-#define POS_MAX_X 2550.0
+#define POS_MAX_X 1024.0
 #define POS_MIN_X 0.0
 #define POS_MAX_Y 1024.0
 #define POS_MIN_Y 0.0
