@@ -32,7 +32,7 @@
 
 // Force
 #define FORCE_PROPERTIES_COUNT 4 // force_x, force_y, force_to(p_id), force_from(p_id)
-#define FORCE_SUM_PROPERTIES_COUNT 2 // force_x, force_y, force_to(p_id)
+#define FORCE_SUM_PROPERTIES_COUNT 2 // force_x, force_y
 #define X_COL 0
 #define Y_COL 1
 #define TO_COL 2
