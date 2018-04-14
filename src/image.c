@@ -61,7 +61,22 @@ void initilize_img(unsigned char* image, int img_width, int img_height) {
 		}
 	}
 }
+void paint_square(unsigned char* image, int i, int j, int img_width, int img_height, 
+				int filterRad, unsigned char r, unsigned char g, unsigned char b) {
+	int ii, jj;
 
+	int min_j = (j - filterRad < 0) ? 0 : j - filterRad;
+    int max_j = (j + filterRad >= img_width) ? img_width - 1 : j + filterRad;
+    int min_i = (i - filterRad < 0) ? 0 : i - filterRad;
+    int max_i = (i + filterRad >= img_height) ? img_height - 1 : i + filterRad;
+    for (ii = min_i; ii <= max_i; ++ii) {
+    	for (jj = min_j; jj <= max_j; ++jj) {
+    		image[(ii * img_width + jj) * 3 + 0] = r;
+			image[(ii * img_width + jj) * 3 + 1] = g;
+			image[(ii * img_width + jj) * 3 + 2] = b;
+    	}
+    }
+}
 int update_img(unsigned char* image, double *p, int img_width, int img_height) {
 	// POS_MAX_X POS_MIN_X POS_MAX_Y POS_MIN_Y
 	int x = (int)(X_RNG * p[POS_X_COL] / (double)img_width);
@@ -82,9 +97,9 @@ int update_img(unsigned char* image, double *p, int img_width, int img_height) {
 		p[TYPE_COL] == MEDIUM ? MEDIUM_B :
 		p[TYPE_COL] == HEAVY ? HEAVY_B : 0;
 
-
-	image[(y * img_width + x) * 3 + 0] = r;
-	image[(y * img_width + x) * 3 + 1] = g;
-	image[(y * img_width + x) * 3 + 2] = b;
+	paint_square(image, y, x, img_width, img_height, 2, r, g, b);
+	//image[(y * img_width + x) * 3 + 0] = r;
+	//image[(y * img_width + x) * 3 + 1] = g;
+	//image[(y * img_width + x) * 3 + 2] = b;
 	return 1;
 }
