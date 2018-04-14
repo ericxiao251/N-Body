@@ -73,19 +73,22 @@ void print_particle(double *p, double time) {
 	LOG(("t=%f, p_id=%d, mass=%f, p_x=%f, p_y=%f, v_x=%f, v_y=%f\n", 
 			time, (int)p[ID_COL], p[WEIGHT_COL], p[POS_X_COL], p[POS_Y_COL],
 			p[VOL_X_COL], p[VOL_Y_COL]));
-*/	
+*/
+/*
 	if (p[WEIGHT_COL] <= 0.0) {
 		return;
 	}
 	LOG(("%lf,%d,%lf,%lf,%lf,%lf,%lf\n", 
 			time, (int)p[ID_COL], p[WEIGHT_COL], p[POS_X_COL], p[POS_Y_COL],
 			p[VOL_X_COL], p[VOL_Y_COL]));
+*/
+	return;
 }
 
 void print_all_particles(double **P, int numParticle, double time) {
 	int i;
 	//LOG(("{\n"));
-	LOG(("t,p_id,mass,p_x,p_y,v_x,v_y\n"));
+	//LOG(("t,p_id,mass,p_x,p_y,v_x,v_y\n"));
 	for (i = 0; i < numParticle; ++i) {
 		print_particle(P[i], time);
 	}
