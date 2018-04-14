@@ -2,7 +2,7 @@
 #include <assert.h>
 
 void saveBMP(const char* filename, const unsigned char* result, int w, int h){
-    printf("saving image...\n");
+    //printf("saving image...\n");
 	FILE *f;
 	unsigned char *img = NULL;
 	int filesize = 54 + 3*w*h;  //w is your image width, h is image height, both int
@@ -46,7 +46,7 @@ void saveBMP(const char* filename, const unsigned char* result, int w, int h){
 	    fwrite(bmppad,1,(4-(w*3)%4)%4,f);
 	}
 	fclose(f);
-    printf("finished saving!\n");
+    //printf("finished saving!\n");
 }
 
 
@@ -61,7 +61,22 @@ void initilize_img(unsigned char* image, int img_width, int img_height) {
 		}
 	}
 }
+void paint_square(unsigned char* image, int i, int j, int img_width, int img_height, 
+				int filterRad, unsigned char r, unsigned char g, unsigned char b) {
+	int ii, jj;
 
+	int min_j = (j - filterRad < 0) ? 0 : j - filterRad;
+    int max_j = (j + filterRad >= img_width) ? img_width - 1 : j + filterRad;
+    int min_i = (i - filterRad < 0) ? 0 : i - filterRad;
+    int max_i = (i + filterRad >= img_height) ? img_height - 1 : i + filterRad;
+    for (ii = min_i; ii <= max_i; ++ii) {
+    	for (jj = min_j; jj <= max_j; ++jj) {
+    		image[(ii * img_width + jj) * 3 + 0] = r;
+			image[(ii * img_width + jj) * 3 + 1] = g;
+			image[(ii * img_width + jj) * 3 + 2] = b;
+    	}
+    }
+}
 int update_img(unsigned char* image, double *p, int img_width, int img_height) {
 	// POS_MAX_X POS_MIN_X POS_MAX_Y POS_MIN_Y
 	int x = (int)(X_RNG * p[POS_X_COL] / (double)img_width);
@@ -72,22 +87,19 @@ int update_img(unsigned char* image, double *p, int img_width, int img_height) {
 	}
 
 	unsigned char r, g, b;
-	if (massLightMin <= p[WEIGHT_COL] && p[WEIGHT_COL] <= massLightMax) {
-		r = LIGHT_R;
-		g = LIGHT_G;
-		b = LIGHT_B;
-	} else if (massMediumMin <= p[WEIGHT_COL] && p[WEIGHT_COL] <= massMediumMax) {
-		r = MEDIUM_R;
-		g = MEDIUM_G;
-		b = MEDIUM_B;
-	} else {
-		r = HEAVY_R;
-		g = HEAVY_G;
-		b = HEAVY_B;
-	}
+	r = p[TYPE_COL] == LIGHT ? LIGHT_R :
+		p[TYPE_COL] == MEDIUM ? MEDIUM_R :
+		p[TYPE_COL] == HEAVY ? HEAVY_R : 0;
+	g = p[TYPE_COL] == LIGHT ? LIGHT_G :
+		p[TYPE_COL] == MEDIUM ? MEDIUM_G :
+		p[TYPE_COL] == HEAVY ? HEAVY_G : 0;
+	b = p[TYPE_COL] == LIGHT ? LIGHT_B :
+		p[TYPE_COL] == MEDIUM ? MEDIUM_B :
+		p[TYPE_COL] == HEAVY ? HEAVY_B : 0;
 
-	image[(y * img_width + x) * 3 + 0] = r;
-	image[(y * img_width + x) * 3 + 1] = g;
-	image[(y * img_width + x) * 3 + 2] = b;
+	paint_square(image, y, x, img_width, img_height, 2, r, g, b);
+	//image[(y * img_width + x) * 3 + 0] = r;
+	//image[(y * img_width + x) * 3 + 1] = g;
+	//image[(y * img_width + x) * 3 + 2] = b;
 	return 1;
 }

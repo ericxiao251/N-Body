@@ -2,7 +2,7 @@
 
 int main(int argc, char* argv[]) {
 	srand (1234);
-	int num_processes, my_rank, ave_particle, have_extra;
+	int num_processes, my_rank, ave_particle, padding_num, total_p_cnt, have_extra;
 
 	if (argc != 10) {
 		printf("Usage: %s numParticlesLight numParticleMedium numParticleHeavy numSteps subSteps timeSubStep imageWidth imageHeight imageFilenamePrefix\n", argv[0]);
@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 	int numParticlesLight = atof(argv[1]);
 	int numParticleMedium = atof(argv[2]);
 	int numParticleHeavy = atof(argv[3]);
-	int total_p_cnt = numParticlesLight + numParticleMedium + numParticleHeavy;
+	total_p_cnt = numParticlesLight + numParticleMedium + numParticleHeavy;
 
 	int numSteps = atof(argv[4]);
 	int subSteps = atof(argv[5]);
@@ -28,8 +28,10 @@ int main(int argc, char* argv[]) {
 	unsigned char* image = (unsigned char*)malloc(img_width * img_height * 3 * sizeof(unsigned char));
 
 	// Particle per slave node
-	ave_particle = total_p_cnt / (num_processes - 1);
 	have_extra = total_p_cnt % (num_processes - 1);
+	padding_num = (have_extra == 0) ? 0 : (num_processes - 1) - have_extra;
+	total_p_cnt += padding_num;
+	ave_particle = total_p_cnt / (num_processes - 1);
 
 	/*--------------------------------- Master Node ------------------------------------------*/
 	if (my_rank == 0) {
@@ -48,16 +50,17 @@ int main(int argc, char* argv[]) {
 			P[i] = &P_data[PARTICLE_PROPERTIES_COUNT * i];
 			P_force[i] = &P_force_data[FORCE_SUM_PROPERTIES_COUNT * i];
 		}
-		particles_gen(P, numParticlesLight, numParticleMedium, numParticleHeavy);
+		particles_gen(P, numParticlesLight, numParticleMedium, numParticleHeavy, padding_num);
 
-		print_properties_h();
+		//print_properties_h();
+		print_all_particles(P, total_p_cnt, time);
 		for (j = 0; j < numSteps; ++j) {
 			for (k = 0; k < subSteps; ++k) {
-				print_all_particles(P, total_p_cnt);
 				time += timeSubStep;
-				printf("============== Current Time is %lf =============\n", time);
+				//printf("============== Current Time is %lf =============\n", time);
+				
 				// Cyclic distribute particles
-				cyclic_master_send(P, total_p_cnt, num_processes, ave_particle, have_extra);
+				cyclic_master_send(P, total_p_cnt, num_processes, ave_particle, 0);
 
 				// Receive and sum forces;
 				for (i = 0; i < total_p_cnt * FORCE_SUM_PROPERTIES_COUNT; ++i) {
@@ -66,6 +69,7 @@ int main(int argc, char* argv[]) {
 				cyclic_master_receive(P_force, num_processes);
 				// Update P and img based on forces
 				update(image, P, P_force, total_p_cnt, img_width, img_height, timeSubStep);
+				print_all_particles(P, total_p_cnt, time);
 			}
 			// Save the image
 			snprintf(img_name, sizeof(char) * 32, "0%i.bmp", j);
@@ -99,10 +103,10 @@ int main(int argc, char* argv[]) {
 				for (i = 0; i < total_p_send; ++i) {
 					P[i] = &P_data[PARTICLE_PROPERTIES_COUNT * i];
 					MPI_Recv(&P[i][0], PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
-					LOG(("Slave Node %d: Receive particle %f from Master Node\n", my_rank, P[i][ID_COL]));
+					//LOG(("Slave Node %d: Receive particle %f from Master Node\n", my_rank, P[i][ID_COL]));
 				}
 				// Calculate forces
-				cyclic_slave_cal_force(P, my_rank, num_processes, ave_particle, have_extra, total_p_cnt, total_p_send);
+				cyclic_slave_cal_force(P, my_rank, num_processes, ave_particle, 0, total_p_cnt, total_p_send);
 		
 				// Release Memory
 				free(P);

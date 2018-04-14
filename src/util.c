@@ -1,12 +1,17 @@
 #include "define.h"
 
-void location_gen(double *x, double *y) {
-	*x = POS_MIN_X + (POS_MAX_X - POS_MIN_X) * drand48();
-	*y = POS_MIN_Y + (POS_MAX_Y - POS_MIN_Y) * drand48();
+void location_gen(double *x, double *y, int type) {
+	*x = (type != DUMMY) ? POS_MIN_X + (POS_MAX_X - POS_MIN_X) * drand48() : 0.0;
+	*y = (type != DUMMY) ? POS_MIN_Y + (POS_MAX_Y - POS_MIN_Y) * drand48() : 0.0;
 }
 
 void velocity_gen(double *x, double *y, int type) {
 	double max_v, min_v, rand_v, rand_deg;
+	if (type == DUMMY) {
+		*x = 0.0;
+		*y = 0.0;
+		return;
+	}
 
 	max_v = (type == LIGHT) ? velocityLightMin : 
 					(type == MEDIUM) ? velocityMediumMin :
@@ -24,7 +29,7 @@ void velocity_gen(double *x, double *y, int type) {
 void weight_gen(double *w, int type) {
 	*w = (type == LIGHT) ? massLightMin + (massLightMax - massLightMin) * drand48() :
 		 (type == MEDIUM) ? massMediumMin + (massMediumMax - massMediumMin) * drand48() :
-		 (type == HEAVY) ? massHeavyMin + (massHeavyMax - massHeavyMin) * drand48(): 0;
+		 (type == HEAVY) ? massHeavyMin + (massHeavyMax - massHeavyMin) * drand48(): DUMMY_WEIGHT;
 }
 
 void particles_gen_by_type(double **P, int type, int cnt) {
@@ -32,7 +37,8 @@ void particles_gen_by_type(double **P, int type, int cnt) {
 	static double id = 0.0;
 	for (i = 0; i < cnt; ++i) {
 		P[i][ID_COL] = id++;
-		location_gen(&P[i][POS_X_COL], &P[i][POS_Y_COL]);
+		P[i][TYPE_COL] = (double)type;
+		location_gen(&P[i][POS_X_COL], &P[i][POS_Y_COL], type);
 		velocity_gen(&P[i][VOL_X_COL], &P[i][VOL_Y_COL], type);
 		weight_gen(&P[i][WEIGHT_COL], type);
 	}
@@ -51,28 +57,49 @@ void print_properties_h(void) {
 	LOG(("  %f <=   mass   <= %f\n", massHeavyMin, massHeavyMax));
 }
 
-void print_particle(double *p) {
+void print_particle(double *p, double time) {
+/*
 	LOG(("{\n"));
 	LOG(("\tparticle_id: %f,\n", p[ID_COL]));
+	LOG(("\tparticle_type: %f,\n", p[TYPE_COL]));
 	LOG(("\tmass = %f,\n", p[WEIGHT_COL]));
 	LOG(("\tposition: x = %f, ", p[POS_X_COL]));
 	LOG(("y = %f,\n", p[POS_Y_COL]));
 	LOG(("\tvelocity: x = %f, ", p[VOL_X_COL]));
 	LOG(("y = %f, v = %f,\n", p[VOL_Y_COL], sqrt(p[VOL_X_COL] * p[VOL_X_COL] + p[VOL_Y_COL] * p[VOL_Y_COL])));
 	LOG(("}\n"));
-}
-
-void print_all_particles(double **P, int numParticle) {
-	int i;
-	for (i = 0; i < numParticle; ++i) {
-		print_particle(P[i]);
+*/
+/*
+	LOG(("t=%f, p_id=%d, mass=%f, p_x=%f, p_y=%f, v_x=%f, v_y=%f\n", 
+			time, (int)p[ID_COL], p[WEIGHT_COL], p[POS_X_COL], p[POS_Y_COL],
+			p[VOL_X_COL], p[VOL_Y_COL]));
+*/
+/*
+	if (p[WEIGHT_COL] <= 0.0) {
+		return;
 	}
+	LOG(("%lf,%d,%lf,%lf,%lf,%lf,%lf\n", 
+			time, (int)p[ID_COL], p[WEIGHT_COL], p[POS_X_COL], p[POS_Y_COL],
+			p[VOL_X_COL], p[VOL_Y_COL]));
+*/
+	return;
 }
 
-void particles_gen(double **P, int light_cnt, int medium_cnt, int heavy_cnt) {
+void print_all_particles(double **P, int numParticle, double time) {
+	int i;
+	//LOG(("{\n"));
+	//LOG(("t,p_id,mass,p_x,p_y,v_x,v_y\n"));
+	for (i = 0; i < numParticle; ++i) {
+		print_particle(P[i], time);
+	}
+	//LOG(("}\n"));
+}
+
+void particles_gen(double **P, int light_cnt, int medium_cnt, int heavy_cnt, int padding_cnt) {
 	particles_gen_by_type(&P[0],                      LIGHT,  light_cnt);
 	particles_gen_by_type(&P[light_cnt],              MEDIUM, medium_cnt);
 	particles_gen_by_type(&P[light_cnt + medium_cnt], HEAVY,  heavy_cnt);
+	particles_gen_by_type(&P[light_cnt + medium_cnt + heavy_cnt], DUMMY,  padding_cnt);
 }
 
 void update(unsigned char* image, double **P, double **P_force, int total_p_cnt, int img_width, int img_height, double step_size) {
@@ -80,10 +107,14 @@ void update(unsigned char* image, double **P, double **P_force, int total_p_cnt,
 	
 	initilize_img(image, img_width, img_height);
 	for (i = 0; i < total_p_cnt; ++i) {
+		if (P[i][WEIGHT_COL] == DUMMY_WEIGHT) {
+			// skip padding particles
+			continue;
+		}
 		update_p(P[i], P_force[(int)(P[i][ID_COL])], step_size);
 		if (update_img(image, P[i], img_width, img_height) > 0) {
 			++cnt;
 		}
 	}
-	LOG(("UPDATE IMG: %d particles in range of the img.\n", cnt));
+	//LOG(("UPDATE IMG: %d particles in range of the img.\n", cnt));
 }

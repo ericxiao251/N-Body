@@ -65,6 +65,10 @@ def compare():
 				temp = "difference:  "
 				for i in range(len(data1)):
 					if data1[i] != data2[i]:
+<<<<<<< HEAD
+=======
+						diff = abs(float(data1[i]) - float(data1[i])) * 100 / float(data1[i])
+>>>>>>> fe615745c78be4b5de3450714b4a9f456c3b4a73
 						diff = abs(float(data1[i]) - float(data1[i])) * 100 / abs(float(data1[i]))
 						temp = temp + "{}: {}, {}, {}%, ".format(header[i], data1[i], data2[i], diff)
 				temp = temp[0:-2] + "\n"

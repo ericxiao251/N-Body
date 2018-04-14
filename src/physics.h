@@ -1,9 +1,13 @@
 #ifndef __PHYSICS_H__
 #define __PHYSICS_H__
 
+// Constants
 #define epsilon 0.000000000000000222
 #define TWO_PI 6.28318530718
 #define GRAVITY 6.673E-11
+
+// Edge cases
+#define MAX_FORCE_SCALAR 1.5E39 // roughly MAX_MASS^2 * GRAVITY / (epsilon ^ 3)
 
 typedef struct force_list_node {
 	int pid1;

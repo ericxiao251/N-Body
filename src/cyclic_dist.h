@@ -1,6 +1,6 @@
 //cyclic_dist.h
-#ifndef __CYCLIC_DIST__
-#define __CYCLIC_DIST__
+#ifndef __CYCLIC_DIST_H__
+#define __CYCLIC_DIST_H__
 
 // Master functions
 void cyclic_master_send(double **P, int num_particles, int num_processes, int avg_particle, int have_extra);
