@@ -59,8 +59,20 @@ def compare():
 	with open("data/theoretical.csv", "r") as file1, open("data/actual.csv", "r") as file2:
 		for line1, line2 in zip(file1, file2):
 			if line1 != line2:
-				difference.append("actual:      {}".format(line1))
-				difference.append("theoretical: {}".format(line2))
+
+				data1 = line1.split(",")
+				data2 = line2.split(",")
+				temp = "difference:  "
+				for i in range(len(data1)):
+					if data1[i] != data2[i]:
+						diff = abs(float(data1[i]) - float(data1[i])) * 100 / float(data1[i])
+						diff = abs(float(data1[i]) - float(data1[i])) * 100 / abs(float(data1[i]))
+						temp = temp + "{}: {}, {}, {}%, ".format(header[i], data1[i], data2[i], diff)
+				temp = temp[0:-2] + "\n"
+
+				# difference.append("actual:      {}".format(line2))
+				# difference.append("theoretical: {}".format(line1))
+				difference.append(temp)
 
 	with open('data/difference.csv', 'w') as f:
 	    for line in difference:
