@@ -2,7 +2,7 @@
 #include <assert.h>
 
 void saveBMP(const char* filename, const unsigned char* result, int w, int h){
-    printf("saving image...\n");
+    //printf("saving image...\n");
 	FILE *f;
 	unsigned char *img = NULL;
 	int filesize = 54 + 3*w*h;  //w is your image width, h is image height, both int
@@ -46,7 +46,7 @@ void saveBMP(const char* filename, const unsigned char* result, int w, int h){
 	    fwrite(bmppad,1,(4-(w*3)%4)%4,f);
 	}
 	fclose(f);
-    printf("finished saving!\n");
+    //printf("finished saving!\n");
 }
 
 
