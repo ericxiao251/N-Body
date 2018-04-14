@@ -27,13 +27,13 @@ void grav_force_particles(force_list_node* force, double *p1, double *p2) {
 }
 
 void update_p(double *p, double *p_force, double step_size) {
-	double vol_scalar, v, max_v, min_v;
+	//double vol_scalar, v, max_v, min_v;
 
 	p[POS_X_COL] += p[VOL_X_COL] * step_size;
 	p[POS_Y_COL] += p[VOL_Y_COL] * step_size;
 	p[VOL_X_COL] += p_force[X_COL] * step_size / p[WEIGHT_COL];
 	p[VOL_Y_COL] += p_force[Y_COL] * step_size / p[WEIGHT_COL];
-
+/* TODO: See if this check is needed.
 	min_v = (p[TYPE_COL] == LIGHT) ? velocityLightMin :
 			(p[TYPE_COL] == MEDIUM) ? velocityMediumMin :
 			(p[TYPE_COL] == HEAVY) ? velocityHeavyMin : 0;
@@ -46,6 +46,7 @@ void update_p(double *p, double *p_force, double step_size) {
 
 	p[VOL_X_COL] *= vol_scalar;
 	p[VOL_Y_COL] *= vol_scalar;
+*/
 }
 
 void print_force_list(force_list_node *list, force_list_node *end_list) {

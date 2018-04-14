@@ -53,11 +53,12 @@ int main(int argc, char* argv[]) {
 		particles_gen(P, numParticlesLight, numParticleMedium, numParticleHeavy, padding_num);
 
 		print_properties_h();
+		print_all_particles(P, total_p_cnt, time);
 		for (j = 0; j < numSteps; ++j) {
 			for (k = 0; k < subSteps; ++k) {
-				print_all_particles(P, total_p_cnt);
 				time += timeSubStep;
 				printf("============== Current Time is %lf =============\n", time);
+				
 				// Cyclic distribute particles
 				cyclic_master_send(P, total_p_cnt, num_processes, ave_particle, 0);
 
@@ -68,6 +69,7 @@ int main(int argc, char* argv[]) {
 				cyclic_master_receive(P_force, num_processes);
 				// Update P and img based on forces
 				update(image, P, P_force, total_p_cnt, img_width, img_height, timeSubStep);
+				print_all_particles(P, total_p_cnt, time);
 			}
 			// Save the image
 			snprintf(img_name, sizeof(char) * 32, "0%i.bmp", j);
