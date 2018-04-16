@@ -102,7 +102,8 @@ void particles_gen(double **P, int light_cnt, int medium_cnt, int heavy_cnt, int
 	particles_gen_by_type(&P[light_cnt + medium_cnt + heavy_cnt], DUMMY,  padding_cnt);
 }
 
-void update(unsigned char* image, double **P, double **P_force, int total_p_cnt, int img_width, int img_height, double step_size) {
+void update(unsigned char* image, double **P, double **P_force, int total_p_cnt, 
+	int img_width, int img_height, double step_size, int regenerate_img) {
 	int i, cnt = 0;
 	
 	initilize_img(image, img_width, img_height);
@@ -112,9 +113,17 @@ void update(unsigned char* image, double **P, double **P_force, int total_p_cnt,
 			continue;
 		}
 		update_p(P[i], P_force[(int)(P[i][ID_COL])], step_size);
-		if (update_img(image, P[i], img_width, img_height) > 0) {
-			++cnt;
+		// Only regenerate the whole image when necessary
+		if (regenerate_img) {
+			int in_img_rng = update_img(image, P[i], img_width, img_height);
+			if (in_img_rng) {
+				// if the particle is still in image range, cnt updated
+				
+				++cnt;
+			}
 		}
 	}
-	//LOG(("UPDATE IMG: %d particles in range of the img.\n", cnt));
+	//if (regenerate_img) {
+	//	LOG(("UPDATE IMG: %d particles in range of the img.\n", cnt));
+	//}
 }
