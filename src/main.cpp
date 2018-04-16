@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 			for (k = 0; k < subSteps; ++k) {
 				time += timeSubStep;
 				//printf("============== Current Time is %lf =============\n", time);
-				
+
 				// Cyclic distribute particles
 				cyclic_master_send(P, total_p_cnt, num_processes, ave_particle, 0);
 
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 				print_all_particles(P, total_p_cnt, time);
 			}
 			// Save the image
-			snprintf(img_name, sizeof(char) * 32, "0%i.bmp", j);
+			snprintf(img_name, sizeof(char) * 32, "_%05i.bmp", j);
 
 			strcpy(img_full_path, argv[9]);
 			strcat(img_full_path, img_name);
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 			for (k = 0; k < subSteps; ++k) {
 				MPI_Recv(&init_p_id, 1, MPI_INT, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
 				MPI_Recv(&total_p_send, 1, MPI_INT, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
-				
+
 				P_data = (double *)malloc(total_p_send * PARTICLE_PROPERTIES_COUNT * sizeof(double));
 				P = (double **) malloc(total_p_send * sizeof(double *));
 
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 				}
 				// Calculate forces
 				cyclic_slave_cal_force(P, my_rank, num_processes, ave_particle, 0, total_p_cnt, total_p_send);
-		
+
 				// Release Memory
 				free(P);
 				free(P_data);

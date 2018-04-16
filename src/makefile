@@ -5,7 +5,7 @@ OBJECTS=$(SOURCES:.cpp=.o)
 
 SOURCES=main.cpp image.c util.c cyclic_dist.c physics.c
 
-EXECUTABLE=x.project
+EXECUTABLE=project.x
 
 all: $(SOURCES) $(EXECUTABLE)
 
