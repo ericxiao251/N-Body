@@ -1,6 +1,7 @@
 #include "define.h"
 #include <assert.h>
 
+
 void saveBMP(const char* filename, const unsigned char* result, int w, int h){
     //printf("saving image...\n");
 	FILE *f;
@@ -29,7 +30,7 @@ void saveBMP(const char* filename, const unsigned char* result, int w, int h){
 	fwrite(bmpfileheader,1,14,f);
 	fwrite(bmpinfoheader,1,40,f);
 
-	
+
 	img = (unsigned char *)malloc(3*w);
 	assert(img);
 
@@ -49,7 +50,6 @@ void saveBMP(const char* filename, const unsigned char* result, int w, int h){
     //printf("finished saving!\n");
 }
 
-
 void initilize_img(unsigned char* image, int img_width, int img_height) {
 	int i, j;
 
@@ -61,7 +61,8 @@ void initilize_img(unsigned char* image, int img_width, int img_height) {
 		}
 	}
 }
-void paint_square(unsigned char* image, int i, int j, int img_width, int img_height, 
+
+void paint_square(unsigned char* image, int i, int j, int img_width, int img_height,
 				int filterRad, unsigned char r, unsigned char g, unsigned char b) {
 	int ii, jj;
 
@@ -71,16 +72,17 @@ void paint_square(unsigned char* image, int i, int j, int img_width, int img_hei
     int max_i = (i + filterRad >= img_height) ? img_height - 1 : i + filterRad;
     for (ii = min_i; ii <= max_i; ++ii) {
     	for (jj = min_j; jj <= max_j; ++jj) {
-    		image[(ii * img_width + jj) * 3 + 0] = r;
-			image[(ii * img_width + jj) * 3 + 1] = g;
-			image[(ii * img_width + jj) * 3 + 2] = b;
+				image[(ii * img_width + jj) * 3 + 0] = b;
+				image[(ii * img_width + jj) * 3 + 1] = g;
+				image[(ii * img_width + jj) * 3 + 2] = r;
     	}
     }
 }
+
 int update_img(unsigned char* image, double *p, int img_width, int img_height) {
 	// POS_MAX_X POS_MIN_X POS_MAX_Y POS_MIN_Y
-	int x = (int)(X_RNG * p[POS_X_COL] / (double)img_width);
-	int y = (int)(Y_RNG * p[POS_Y_COL] / (double)img_height);
+	int x = (int)(img_width * p[POS_X_COL] / (double)X_RNG);
+	int y = (int)(img_height * p[POS_Y_COL] / (double)Y_RNG);
 	if (x < 0 || y < 0 || x >= img_width || y >= img_height) {
 		// Out of range
 		return 0;
