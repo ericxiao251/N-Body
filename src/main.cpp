@@ -56,6 +56,7 @@ int main(int argc, char* argv[]) {
 		print_all_particles(P, total_p_cnt, time);
 		for (j = 0; j < numSteps; ++j) {
 			for (k = 0; k < subSteps; ++k) {
+				int regenerate_img = (k == subSteps-1); 
 				time += timeSubStep;
 				//printf("============== Current Time is %lf =============\n", time);
 
@@ -67,8 +68,10 @@ int main(int argc, char* argv[]) {
 					P_force_data[i] = 0.0;
 				}
 				cyclic_master_receive(P_force, num_processes);
-				// Update P and img based on forces
-				update(image, P, P_force, total_p_cnt, img_width, img_height, timeSubStep);
+				
+				// Update position and velocity based on force
+				// only update img when necessary.
+				update(image, P, P_force, total_p_cnt, img_width, img_height, timeSubStep, regenerate_img);
 				print_all_particles(P, total_p_cnt, time);
 			}
 			// Save the image

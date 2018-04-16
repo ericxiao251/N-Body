@@ -59,6 +59,8 @@
 #define X_RNG (POS_MAX_X-POS_MIN_X)
 #define Y_RNG (POS_MAX_Y-POS_MIN_Y)
 
+/*--------------------- Generate image ----------------------*/
+#define PARTICLE_R 2 // Size of each particle in img
 #define LIGHT_R 0
 #define LIGHT_G 0
 #define LIGHT_B 255

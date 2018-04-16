@@ -99,7 +99,7 @@ int update_img(unsigned char* image, double *p, int img_width, int img_height) {
 		p[TYPE_COL] == MEDIUM ? MEDIUM_B :
 		p[TYPE_COL] == HEAVY ? HEAVY_B : 0;
 
-	paint_square(image, y, x, img_width, img_height, 2, r, g, b);
+	paint_square(image, y, x, img_width, img_height, PARTICLE_R, r, g, b);
 	//image[(y * img_width + x) * 3 + 0] = r;
 	//image[(y * img_width + x) * 3 + 1] = g;
 	//image[(y * img_width + x) * 3 + 2] = b;
