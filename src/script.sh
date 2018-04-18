@@ -12,12 +12,19 @@ echo "number_of_light_particles,number_of_medium_particles,number_of_heavy_parti
 subSteps=10
 for numParticles in 2000 4000 8000 16000 32000
 do
-  for p in 32 16 8 4 2 1
+  for p in 32 16 8 4 2
   do
-    numParticlesLight=$((numParticles/3 + 1))
+    if (($numParticles % 3))
+    then numParticlesLight=$((numParticles/3 + 1))
+    else numParticlesLight=$((numParticles/3))
+    fi
+    if ((($numParticles % 3) == 2))
+    then numParticlesHeavy=$((numParticles/3 + 1))
+    else numParticlesHeavy=$((numParticles/3))
+    fi
     numParticlesMedium=$((numParticles/3))
-    numParticlesHeavy=$((numParticles/3 + 1))
+
     echo "mpirun -np $p ./project.x $numParticlesLight $numParticlesMedium $numParticlesHeavy 1 $subSteps 1 1024 1024 \"../images/output\""
-    mpirun -np $p ./project.x $numParticlesLight $numParticlesMedium $numParticlesHeavy 1 $subSteps 1 1024 1024 "../images/output" >> $file
+    # mpirun -np $p ./project.x $numParticlesLight $numParticlesMedium $numParticlesHeavy 1 $subSteps 1 1024 1024 "../images/output" >> $file
   done
 done
