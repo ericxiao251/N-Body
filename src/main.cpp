@@ -17,17 +17,17 @@ int main(int argc, char* argv[]) {
 	MPI_Comm_size(MPI_COMM_WORLD, &num_processes);
 
 	// Input
-	int numParticlesLight = atoi(argv[1]);
-	int numParticleMedium = atoi(argv[2]);
-	int numParticleHeavy = atoi(argv[3]);
+	int numParticlesLight = atof(argv[1]);
+	int numParticleMedium = atof(argv[2]);
+	int numParticleHeavy = atof(argv[3]);
 	total_p_cnt = numParticlesLight + numParticleMedium + numParticleHeavy;
 
-	int numSteps = atoi(argv[4]);
-	int subSteps = atoi(argv[5]);
-	int timeSubStep = atoi(argv[6]);
+	int numSteps = atof(argv[4]);
+	int subSteps = atof(argv[5]);
+	double timeSubStep = atof(argv[6]);
 
-	int img_width = atoi(argv[7]);
-	int img_height = atoi(argv[8]);
+	int img_width = atof(argv[7]);
+	int img_height = atof(argv[8]);
 	unsigned char* image = (unsigned char*) malloc(img_width * img_height * 3 * sizeof(unsigned char));
 
 	// Particle per slave node
@@ -40,14 +40,13 @@ int main(int argc, char* argv[]) {
 	if (my_rank == 0) {
 		// Initilize Particles
 		int i, j, k;
-		int time = 0;
-		double *P_data, **P, *P_force_data, **P_force;
+		double *P_data, **P, *P_force_data, **P_force, time = 0.0;
 		char img_name[20];
 		char img_full_path[100];
 
-		P_data = (double *) malloc(total_p_cnt * PARTICLE_PROPERTIES_COUNT * sizeof(double));
+		P_data = (double *)malloc(total_p_cnt * PARTICLE_PROPERTIES_COUNT * sizeof(double));
 		P = (double **) malloc(total_p_cnt * sizeof(double *));
-		P_force_data = (double *) malloc(total_p_cnt * FORCE_SUM_PROPERTIES_COUNT * sizeof(double));
+		P_force_data = (double *)malloc(total_p_cnt * FORCE_SUM_PROPERTIES_COUNT * sizeof(double));
 		P_force = (double **) malloc(total_p_cnt * sizeof(double *));
 
 		for (i = 0; i < total_p_cnt; ++i) {
@@ -77,7 +76,7 @@ int main(int argc, char* argv[]) {
 
 				// Update position and velocity based on force
 				// only update img when necessary.
-				update(image, P, P_force, total_p_cnt, img_width, img_height, timeSubStep, regenerate_img);
+				update(image, P, P_force, total_p_cnt, img_width, img_height, (double) timeSubStep, regenerate_img);
 
 				stop_time = MPI_Wtime();
 
@@ -136,7 +135,7 @@ int main(int argc, char* argv[]) {
 				for (i = 0; i < total_p_send; ++i) {
 					P[i] = &P_data[PARTICLE_PROPERTIES_COUNT * i];
 					MPI_Recv(&P[i][0], PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
-					//LOG(("Slave Node %d: Receive particle %f from Master Node\n", my_rank, P[i][ID_COL]));
+					LOG(("Slave Node %d: Receive particle %f from Master Node\n", my_rank, P[i][ID_COL]));
 				}
 				// Calculate forces
 				cyclic_slave_cal_force(P, my_rank, num_processes, ave_particle, 0, total_p_cnt, total_p_send);

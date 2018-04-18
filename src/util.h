@@ -3,8 +3,8 @@
 
 // Print functions
 void print_properties_h(void);
-void print_particle(double *p, int time);
-void print_all_particles(double **P, int numParticle, int time);
+void print_particle(double *p, double time);
+void print_all_particles(double **P, int numParticle, double time);
 
 // Particle generation
 void particles_gen(double **P, int light_cnt, int medium_cnt, int heavy_cnt, int padding_cnt);
