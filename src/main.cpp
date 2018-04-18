@@ -4,6 +4,9 @@ int main(int argc, char* argv[]) {
 	srand (1234);
 	int num_processes, my_rank, ave_particle, padding_num, total_p_cnt, have_extra;
 
+	double min_time_of_substeps = NULL, max_time_of_substeps = NULL, avg_time_of_substeps = NULL;
+	double start_time, stop_time, total_sub_time;
+
 	if (argc != 10) {
 		printf("Usage: %s numParticlesLight numParticleMedium numParticleHeavy numSteps subSteps timeSubStep imageWidth imageHeight imageFilenamePrefix\n", argv[0]);
 	}
@@ -56,9 +59,11 @@ int main(int argc, char* argv[]) {
 		print_all_particles(P, total_p_cnt, time);
 		for (j = 0; j < numSteps; ++j) {
 			for (k = 0; k < subSteps; ++k) {
-				int regenerate_img = (k == subSteps-1); 
+				int regenerate_img = (k == subSteps-1);
 				time += timeSubStep;
 				//printf("============== Current Time is %lf =============\n", time);
+
+				start_time = MPI_Wtime();
 
 				// Cyclic distribute particles
 				cyclic_master_send(P, total_p_cnt, num_processes, ave_particle, 0);
@@ -68,10 +73,25 @@ int main(int argc, char* argv[]) {
 					P_force_data[i] = 0.0;
 				}
 				cyclic_master_receive(P_force, num_processes);
-				
+
 				// Update position and velocity based on force
 				// only update img when necessary.
 				update(image, P, P_force, total_p_cnt, img_width, img_height, timeSubStep, regenerate_img);
+
+				stop_time = MPI_Wtime();
+
+				// Calculate timing
+				total_sub_time = stop_time - start_time;
+				if ((min_time_of_substeps == NULL) && (max_time_of_substeps == NULL) && (avg_time_of_substeps == NULL)) {
+					min_time_of_substeps = total_sub_time;
+					max_time_of_substeps = total_sub_time;
+					avg_time_of_substeps = total_sub_time;
+				} else {
+					if (total_sub_time > max_time_of_substeps) max_time_of_substeps = total_sub_time;
+					if (total_sub_time < min_time_of_substeps) min_time_of_substeps = total_sub_time;
+					avg_time_of_substeps += total_sub_time;
+				}
+
 				print_all_particles(P, total_p_cnt, time);
 			}
 			// Save the image
@@ -119,5 +139,13 @@ int main(int argc, char* argv[]) {
 
 	}
 	MPI_Finalize();
+
+	avg_time_of_substeps /= (double) (numSteps * subSteps):
+	printf("%.6lf %.6lf %.6lf\n", min_time_of_substeps, max_time_of_substeps, avg_time_of_substeps);
+	printf("%d,%d,%.6lf,%.6lf,%.6lf\n",
+		total_p_cnt, num_processes,
+		min_time_of_substeps, max_time_of_substeps, avg_time_of_substeps
+	);
+
 	return 0;
 }
