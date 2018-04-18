@@ -79,7 +79,7 @@ void cyclic_master_receive(double **P_force, int num_processes) {
 void cyclic_slave_cal_force(double **P, int local_rank, int num_processes, int avg_particle, int have_extra, int totalP, int total_p_send) {
 	MPI_Status status;
 	int i, j, k, ii, init_p_id, to_slave, from_slave, force_cnt = 0;
-	double **P_received, ***P_ptr, *P_received_data;
+	double **P_received, *P_ptr, *P_received_data;
 	force_list_node **force_lists, **force_list_pnters;
 
 	/*------------------ Figure out where to send&receive particles ---------------------*/
