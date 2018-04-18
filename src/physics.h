@@ -20,7 +20,7 @@ typedef struct force_list_node {
 // Physics Function
 void grav_force(double *f12_x, double *f12_y, double mass1, double mass2, double s1_x, double s1_y, double s2_x, double s2_y);
 void grav_force_particles(force_list_node* force, double *p1, double *p2);
-void update_p(double *p, double *p_force, double step_size);
+void update_p(double *p, double *p_force, int step_size);
 
 // Helper_function
 void print_force_list(force_list_node *list, force_list_node *end_list);
