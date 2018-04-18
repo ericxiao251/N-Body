@@ -17,7 +17,7 @@ void grav_force(double *f12_x, double *f12_y, double mass1, double mass2, double
 
 void grav_force_particles(force_list_node* force, double *p1, double *p2) {
 	double x, y;
-	
+
 	grav_force(&x, &y, p1[WEIGHT_COL], p2[WEIGHT_COL], p1[POS_X_COL], p1[POS_Y_COL], p2[POS_X_COL], p2[POS_Y_COL]);
 
 	force->pid1 = (int)p1[ID_COL];
