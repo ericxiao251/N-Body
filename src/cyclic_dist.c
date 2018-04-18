@@ -55,8 +55,8 @@ void cyclic_master_receive(double **P_force, int num_processes) {
 	force_buffer = (double *) malloc(sizeof(double) * FORCE_PROPERTIES_COUNT);
 
 	for (i = 1; i < num_processes; ++i) {
-		MPI_Recv(&force_cnt, 1, MPI_INT, i, SLAVE_TO_MASTER_TAG, MPI_COMM_WORLD, &status);
 		// LOG(("Master Node: Receive %d force(s) to from Slave Node %d...\n", force_cnt, i));
+		MPI_Recv(&force_cnt, 1, MPI_INT, i, SLAVE_TO_MASTER_TAG, MPI_COMM_WORLD, &status);
 		for (j = 0; j < force_cnt; ++j) {
 			MPI_Recv(force_buffer, FORCE_PROPERTIES_COUNT, MPI_DOUBLE, i, SLAVE_TO_MASTER_TAG, MPI_COMM_WORLD, &status);
 			to_force = (int)force_buffer[TO_COL];
@@ -79,7 +79,7 @@ void cyclic_master_receive(double **P_force, int num_processes) {
 void cyclic_slave_cal_force(double **P, int local_rank, int num_processes, int avg_particle, int have_extra, int totalP, int total_p_send) {
 	MPI_Status status;
 	int i, j, k, ii, init_p_id, to_slave, from_slave, force_cnt = 0;
-	double **P_received, *P_received_data;
+	double **P_received, ***P_ptr, *P_received_data;
 	force_list_node **force_lists, **force_list_pnters;
 
 	/*------------------ Figure out where to send&receive particles ---------------------*/
@@ -117,31 +117,15 @@ void cyclic_slave_cal_force(double **P, int local_rank, int num_processes, int a
 	/*------------------------------ Ring Passing Phase ----------------------------------------*/
 	for (k = 0; k < num_processes - 2; ++k) {
 		// Ring Pass Cycle i
-		if (k == 0) {
-			//[BUG: This could cause blocking]
-			//MPI_Send(&P[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, to_slave, SLAVE_TO_SLAVE_TAG, MPI_COMM_WORLD);
-			MPI_Sendrecv(&P[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE,
-				to_slave, SLAVE_TO_SLAVE_TAG,
-				&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE,
-				from_slave, SLAVE_TO_SLAVE_TAG,
-				MPI_COMM_WORLD, &status);
-			//for (ii=0;ii<total_p_send;++ii) {
-			//	LOG(("Slave Node %d: Send Particle %f to Slave Node %d\n", local_rank, P[ii][ID_COL], to_slave));
-			//}
-		} else {
-			//[BUG: This could cause blocking]
-			//MPI_Send(&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, to_slave, SLAVE_TO_SLAVE_TAG, MPI_COMM_WORLD);
-			MPI_Sendrecv(&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE,
-				to_slave, SLAVE_TO_SLAVE_TAG,
-				&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE,
-				from_slave, SLAVE_TO_SLAVE_TAG,
-				MPI_COMM_WORLD, &status);
-			//for (ii=0;ii<total_p_send;++ii) {
-			//	LOG(("Slave Node %d: Send Particle %f to Slave Node %d\n", local_rank, P_received[ii][ID_COL], to_slave));
-			//}
-		}
-		//[BUG: This could cause blocking]
-		//MPI_Recv(&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, from_slave, SLAVE_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
+		P_ptr = (k == 0) ? &P[0][0] : &P_received[0][0];
+		MPI_Sendrecv(P_ptr, total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE,
+			to_slave, SLAVE_TO_SLAVE_TAG,
+			&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE,
+			from_slave, SLAVE_TO_SLAVE_TAG,
+			MPI_COMM_WORLD, &status);
+		// for (ii = 0; ii < total_p_send; ++ii) {
+		// 	LOG(("Slave Node %d: Send Particle %f to Slave Node %d\n", local_rank, P[ii][ID_COL], to_slave));
+		// }
 
 		for (i = 0; i < total_p_send; ++i) {
 			for (j = 0; j < total_p_send; ++j) {
