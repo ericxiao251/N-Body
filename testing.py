@@ -44,7 +44,7 @@ def run():
 
 		for t in range(time + 1):
 			for p in range(number_of_particles):
-				results = "{:.6f},{:d},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f}\n"\
+				results = "{:d},{:d},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f}\n"\
 				.format(t * h, p, masses[p],
 					positions_x[p], positions_y[p],
 					velocities_x[p], velocities_y[p]
@@ -65,10 +65,6 @@ def compare():
 				temp = "difference:  "
 				for i in range(len(data1)):
 					if data1[i] != data2[i]:
-<<<<<<< HEAD
-=======
-						diff = abs(float(data1[i]) - float(data1[i])) * 100 / float(data1[i])
->>>>>>> fe615745c78be4b5de3450714b4a9f456c3b4a73
 						diff = abs(float(data1[i]) - float(data1[i])) * 100 / abs(float(data1[i]))
 						temp = temp + "{}: {}, {}, {}%, ".format(header[i], data1[i], data2[i], diff)
 				temp = temp[0:-2] + "\n"
@@ -86,9 +82,9 @@ if __name__ == '__main__':
 	EPISLON = 0.000000000000000222
 
 	# change these up values
-	number_of_particles = 30
-	time = 5
-	h = 0.05
+	number_of_particles = 300
+	time = 10
+	h = 1
 
 	header = ["t","p_id","mass","p_x","p_y","v_x","v_y"]
 	df = pd.read_csv('data/actual.csv', header=None, names=header)
