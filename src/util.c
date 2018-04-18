@@ -57,8 +57,7 @@ void print_properties_h(void) {
 	LOG(("  %f <=   mass   <= %f\n", massHeavyMin, massHeavyMax));
 }
 
-void print_particle(double *p, double time) {
-/*
+void print_particle(double *p, int time) {
 	LOG(("{\n"));
 	LOG(("\tparticle_id: %f,\n", p[ID_COL]));
 	LOG(("\tparticle_type: %f,\n", p[TYPE_COL]));
@@ -68,31 +67,30 @@ void print_particle(double *p, double time) {
 	LOG(("\tvelocity: x = %f, ", p[VOL_X_COL]));
 	LOG(("y = %f, v = %f,\n", p[VOL_Y_COL], sqrt(p[VOL_X_COL] * p[VOL_X_COL] + p[VOL_Y_COL] * p[VOL_Y_COL])));
 	LOG(("}\n"));
-*/
-/*
+
 	LOG(("t=%f, p_id=%d, mass=%f, p_x=%f, p_y=%f, v_x=%f, v_y=%f\n",
 			time, (int)p[ID_COL], p[WEIGHT_COL], p[POS_X_COL], p[POS_Y_COL],
 			p[VOL_X_COL], p[VOL_Y_COL]));
-*/
-/*
+
 	if (p[WEIGHT_COL] <= 0.0) {
 		return;
 	}
+
 	LOG(("%lf,%d,%lf,%lf,%lf,%lf,%lf\n",
 			time, (int)p[ID_COL], p[WEIGHT_COL], p[POS_X_COL], p[POS_Y_COL],
 			p[VOL_X_COL], p[VOL_Y_COL]));
-*/
+
 	return;
 }
 
-void print_all_particles(double **P, int numParticle, double time) {
+void print_all_particles(double **P, int numParticle, int time) {
 	int i;
-	//LOG(("{\n"));
-	//LOG(("t,p_id,mass,p_x,p_y,v_x,v_y\n"));
+	LOG(("{\n"));
+	LOG(("t,p_id,mass,p_x,p_y,v_x,v_y\n"));
 	for (i = 0; i < numParticle; ++i) {
 		print_particle(P[i], time);
 	}
-	//LOG(("}\n"));
+	LOG(("}\n"));
 }
 
 void particles_gen(double **P, int light_cnt, int medium_cnt, int heavy_cnt, int padding_cnt) {
@@ -103,7 +101,7 @@ void particles_gen(double **P, int light_cnt, int medium_cnt, int heavy_cnt, int
 }
 
 void update(unsigned char* image, double **P, double **P_force, int total_p_cnt,
-	int img_width, int img_height, double step_size, int regenerate_img) {
+	int img_width, int img_height, int step_size, int regenerate_img) {
 	int i, cnt = 0;
 
 	initilize_img(image, img_width, img_height);
