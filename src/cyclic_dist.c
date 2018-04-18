@@ -116,18 +116,30 @@ void cyclic_slave_cal_force(double **P, int local_rank, int num_processes, int a
 	for (k = 0; k < num_processes - 2; ++k) {
 		// Ring Pass Cycle i
 		if (k == 0) {
-			MPI_Send(&P[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, to_slave, SLAVE_TO_SLAVE_TAG, MPI_COMM_WORLD);
-
+			//[BUG: This could cause blocking]
+			//MPI_Send(&P[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, to_slave, SLAVE_TO_SLAVE_TAG, MPI_COMM_WORLD);
+			MPI_Sendrecv(&P[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE,
+				to_slave, SLAVE_TO_SLAVE_TAG,
+				&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE,
+				from_slave, SLAVE_TO_SLAVE_TAG,
+				MPI_COMM_WORLD, &status);
 			//for (ii=0;ii<total_p_send;++ii) {
 			//	LOG(("Slave Node %d: Send Particle %f to Slave Node %d\n", local_rank, P[ii][ID_COL], to_slave));
 			//}
 		} else {
-			MPI_Send(&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, to_slave, SLAVE_TO_SLAVE_TAG, MPI_COMM_WORLD);
+			//[BUG: This could cause blocking]
+			//MPI_Send(&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, to_slave, SLAVE_TO_SLAVE_TAG, MPI_COMM_WORLD);
+			MPI_Sendrecv(&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE,
+				to_slave, SLAVE_TO_SLAVE_TAG,
+				&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE,
+				from_slave, SLAVE_TO_SLAVE_TAG,
+				MPI_COMM_WORLD, &status);
 			//for (ii=0;ii<total_p_send;++ii) {
 			//	LOG(("Slave Node %d: Send Particle %f to Slave Node %d\n", local_rank, P_received[ii][ID_COL], to_slave));
 			//}
 		}
-		MPI_Recv(&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, from_slave, SLAVE_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
+		//[BUG: This could cause blocking]
+		//MPI_Recv(&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, from_slave, SLAVE_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
 
 		for (i = 0; i < total_p_send; ++i) {
 			for (j = 0; j < total_p_send; ++j) {
