@@ -8,8 +8,8 @@ void cyclic_slave_send_back(force_list_node **force_lists, force_list_node **for
 	force_list_node *f, *tmp, *end_list;
 
 	MPI_Send(&force_cnt, 1, MPI_INT, 0, SLAVE_TO_MASTER_TAG, MPI_COMM_WORLD);
-	force_buffer = (double *)malloc(sizeof(double) * FORCE_PROPERTIES_COUNT);
-	LOG(("Slave Node %d: Send %d force(s) to Master Node...\n", local_rank, force_cnt));
+	force_buffer = (double *) malloc(sizeof(double) * FORCE_PROPERTIES_COUNT);
+	// LOG(("Slave Node %d: Send %d force(s) to Master Node...\n", local_rank, force_cnt));
 	for (i = 0; i < total_p_send; ++i) {
 		f = force_lists[i];
 		end_list = force_list_pnters[i];
@@ -52,11 +52,11 @@ void cyclic_master_receive(double **P_force, int num_processes) {
 	MPI_Status status;
 	int i, j, force_cnt, to_force, from_force;
 	double *force_buffer;
-	force_buffer = (double *)malloc(sizeof(double) * FORCE_PROPERTIES_COUNT);
+	force_buffer = (double *) malloc(sizeof(double) * FORCE_PROPERTIES_COUNT);
 
 	for (i = 1; i < num_processes; ++i) {
 		MPI_Recv(&force_cnt, 1, MPI_INT, i, SLAVE_TO_MASTER_TAG, MPI_COMM_WORLD, &status);
-		LOG(("Master Node: Receive %d force(s) to from Slave Node %d...\n", force_cnt, i));
+		// LOG(("Master Node: Receive %d force(s) to from Slave Node %d...\n", force_cnt, i));
 		for (j = 0; j < force_cnt; ++j) {
 			MPI_Recv(force_buffer, FORCE_PROPERTIES_COUNT, MPI_DOUBLE, i, SLAVE_TO_MASTER_TAG, MPI_COMM_WORLD, &status);
 			to_force = (int)force_buffer[TO_COL];
@@ -87,15 +87,15 @@ void cyclic_slave_cal_force(double **P, int local_rank, int num_processes, int a
 	from_slave = (local_rank == 1) ? num_processes - 1 : local_rank - 1;
 
 	/*------------------------------ Allocate memory ------------------------------------*/
-	P_received_data = (double *)malloc(total_p_send * PARTICLE_PROPERTIES_COUNT * sizeof(double));
+	P_received_data = (double *) malloc(total_p_send * PARTICLE_PROPERTIES_COUNT * sizeof(double));
 	P_received = (double **) malloc(total_p_send * sizeof(double *));
 
-	force_lists = (force_list_node **)malloc(sizeof(force_list_node *) * total_p_send);
-	force_list_pnters = (force_list_node **)malloc(sizeof(force_list_node *) * total_p_send);
+	force_lists = (force_list_node **) malloc(sizeof(force_list_node *) * total_p_send);
+	force_list_pnters = (force_list_node **) malloc(sizeof(force_list_node *) * total_p_send);
 
 	for (i = 0; i < total_p_send; ++i) {
 		P_received[i] = &P_received_data[PARTICLE_PROPERTIES_COUNT * i];
-		force_lists[i] = (force_list_node *)malloc(sizeof(force_list_node));
+		force_lists[i] = (force_list_node *) malloc(sizeof(force_list_node));
 		force_lists[i]->next = NULL;
 		force_list_pnters[i] = force_lists[i];
 	}
@@ -107,7 +107,7 @@ void cyclic_slave_cal_force(double **P, int local_rank, int num_processes, int a
 				// skip padding particles
 				continue;
 			}
-			LOG(("Slave Node %d: Calculate F%d, %d\n", local_rank, (int)P[i][ID_COL], (int)P[j][ID_COL]));
+			// LOG(("Slave Node %d: Calculate F%d, %d\n", local_rank, (int)P[i][ID_COL], (int)P[j][ID_COL]));
 			grav_force_particles(force_list_pnters[i], P[i], P[j]);
 			force_list_pnters[i]->next = (force_list_node *)malloc(sizeof(force_list_node));
 			force_list_pnters[i] = force_list_pnters[i]->next;
@@ -149,7 +149,7 @@ void cyclic_slave_cal_force(double **P, int local_rank, int num_processes, int a
 					continue;
 				}
 				grav_force_particles(force_list_pnters[i], P[i], P_received[j]);
-				LOG(("Slave Node %d: Calculate F%d, %d\n", local_rank, (int) P[i][ID_COL], (int) P_received[j][ID_COL]));
+				// LOG(("Slave Node %d: Calculate F%d, %d\n", local_rank, (int) P[i][ID_COL], (int) P_received[j][ID_COL]));
 				force_list_pnters[i]->next = (force_list_node *) malloc(sizeof(force_list_node));
 				force_list_pnters[i] = force_list_pnters[i]->next;
 				++force_cnt;
