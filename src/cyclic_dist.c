@@ -117,7 +117,7 @@ void cyclic_slave_cal_force(double **P, int local_rank, int num_processes, int a
 	/*------------------------------ Ring Passing Phase ----------------------------------------*/
 	for (k = 0; k < num_processes - 2; ++k) {
 		// Ring Pass Cycle i
-		P_ptr = (k == 0) ? &P[0][0] : &P_received[0][0];
+		P_ptr = (k == 0) ? &(P[0][0]) : &(P_received[0][0]);
 		MPI_Sendrecv(P_ptr, total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE,
 			to_slave, SLAVE_TO_SLAVE_TAG,
 			&P_received[0][0], total_p_send * PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE,
