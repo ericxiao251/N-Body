@@ -4,7 +4,7 @@ int main(int argc, char* argv[]) {
 	srand (1234);
 	int num_processes, my_rank, ave_particle, padding_num, total_p_cnt, have_extra;
 
-	double min_time_of_substeps = NULL, max_time_of_substeps = NULL, avg_time_of_substeps = NULL;
+	double min_time_of_substeps = -1, max_time_of_substeps = -1, avg_time_of_substeps = -1;
 	double start_time, stop_time, total_sub_time;
 
 	if (argc != 10) {
@@ -17,18 +17,18 @@ int main(int argc, char* argv[]) {
 	MPI_Comm_size(MPI_COMM_WORLD, &num_processes);
 
 	// Input
-	int numParticlesLight = atof(argv[1]);
-	int numParticleMedium = atof(argv[2]);
-	int numParticleHeavy = atof(argv[3]);
+	int numParticlesLight = atoi(argv[1]);
+	int numParticleMedium = atoi(argv[2]);
+	int numParticleHeavy = atoi(argv[3]);
 	total_p_cnt = numParticlesLight + numParticleMedium + numParticleHeavy;
 
-	int numSteps = atof(argv[4]);
-	int subSteps = atof(argv[5]);
-	double timeSubStep = atof(argv[6]);
+	int numSteps = atoi(argv[4]);
+	int subSteps = atoi(argv[5]);
+	int timeSubStep = atoi(argv[6]);
 
-	int img_width = atof(argv[7]);
-	int img_height = atof(argv[8]);
-	unsigned char* image = (unsigned char*)malloc(img_width * img_height * 3 * sizeof(unsigned char));
+	int img_width = atoi(argv[7]);
+	int img_height = atoi(argv[8]);
+	unsigned char* image = (unsigned char*) malloc(img_width * img_height * 3 * sizeof(unsigned char));
 
 	// Particle per slave node
 	have_extra = total_p_cnt % (num_processes - 1);
@@ -40,13 +40,14 @@ int main(int argc, char* argv[]) {
 	if (my_rank == 0) {
 		// Initilize Particles
 		int i, j, k;
-		double *P_data, **P, *P_force_data, **P_force, time = 0.0;
+		int time = 0;
+		double *P_data, **P, *P_force_data, **P_force;
 		char img_name[20];
 		char img_full_path[100];
 
-		P_data = (double *)malloc(total_p_cnt * PARTICLE_PROPERTIES_COUNT * sizeof(double));
+		P_data = (double *) malloc(total_p_cnt * PARTICLE_PROPERTIES_COUNT * sizeof(double));
 		P = (double **) malloc(total_p_cnt * sizeof(double *));
-		P_force_data = (double *)malloc(total_p_cnt * FORCE_SUM_PROPERTIES_COUNT * sizeof(double));
+		P_force_data = (double *) malloc(total_p_cnt * FORCE_SUM_PROPERTIES_COUNT * sizeof(double));
 		P_force = (double **) malloc(total_p_cnt * sizeof(double *));
 
 		for (i = 0; i < total_p_cnt; ++i) {
@@ -82,7 +83,7 @@ int main(int argc, char* argv[]) {
 
 				// Calculate timing
 				total_sub_time = stop_time - start_time;
-				if ((min_time_of_substeps == NULL) && (max_time_of_substeps == NULL) && (avg_time_of_substeps == NULL)) {
+				if ((min_time_of_substeps == -1) && (max_time_of_substeps == -1) && (avg_time_of_substeps == -1)) {
 					min_time_of_substeps = total_sub_time;
 					max_time_of_substeps = total_sub_time;
 					avg_time_of_substeps = total_sub_time;
@@ -107,6 +108,15 @@ int main(int argc, char* argv[]) {
 		free(P_force_data);
 		free(P_force);
 		free(image);
+
+		// Print timing
+		avg_time_of_substeps /= (double) (numSteps * subSteps);
+		// printf("%.6lf %.6lf %.6lf\n", min_time_of_substeps, max_time_of_substeps, avg_time_of_substeps);
+		printf("%d,%d,%d,%d,%d,%.6lf,%.6lf,%.6lf\n",
+			numParticlesLight, numParticleMedium, numParticleHeavy, total_p_cnt - padding_num,
+			num_processes,
+			min_time_of_substeps, max_time_of_substeps, avg_time_of_substeps
+		);
 	}
 	/*--------------------------------- Slave Node ------------------------------------------*/
 	else {
@@ -139,13 +149,6 @@ int main(int argc, char* argv[]) {
 
 	}
 	MPI_Finalize();
-
-	avg_time_of_substeps /= (double) (numSteps * subSteps):
-	printf("%.6lf %.6lf %.6lf\n", min_time_of_substeps, max_time_of_substeps, avg_time_of_substeps);
-	printf("%d,%d,%.6lf,%.6lf,%.6lf\n",
-		total_p_cnt, num_processes,
-		min_time_of_substeps, max_time_of_substeps, avg_time_of_substeps
-	);
 
 	return 0;
 }
