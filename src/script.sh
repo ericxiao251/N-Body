@@ -25,6 +25,6 @@ do
     numParticlesMedium=$((numParticles/3))
 
     echo "mpirun -np $p ./project.x $numParticlesLight $numParticlesMedium $numParticlesHeavy 1 $subSteps 1 1024 1024 \"../images/output\""
-    # mpirun -np $p ./project.x $numParticlesLight $numParticlesMedium $numParticlesHeavy 1 $subSteps 1 1024 1024 "../images/output" >> $file
+    mpirun -np $p ./project.x $numParticlesLight $numParticlesMedium $numParticlesHeavy 1 $subSteps 1 1024 1024 "../images/output" >> $file
   done
 done
