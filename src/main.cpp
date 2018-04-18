@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
 		for (j = 0; j < numSteps; ++j) {
 			for (k = 0; k < subSteps; ++k) {
 				// Receive from master
-				MPI_Recv(&init_p_id, 1, MPI_INT, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
+				MPI_Recv(&init_p_id, 1, MPI_INT, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status); // we don't need this?
 				MPI_Recv(&total_p_send, 1, MPI_INT, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
 
 				P_data = (double *) malloc(total_p_send * PARTICLE_PROPERTIES_COUNT * sizeof(double));
