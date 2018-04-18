@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
 				for (i = 0; i < total_p_send; ++i) {
 					P[i] = &P_data[PARTICLE_PROPERTIES_COUNT * i];
 					MPI_Recv(&P[i][0], PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, 0, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD, &status);
-					LOG(("Slave Node %d: Receive particle %f from Master Node\n", my_rank, P[i][ID_COL]));
+					//LOG(("Slave Node %d: Receive particle %f from Master Node\n", my_rank, P[i][ID_COL]));
 				}
 				// Calculate forces
 				cyclic_slave_cal_force(P, my_rank, num_processes, ave_particle, 0, total_p_cnt, total_p_send);

@@ -41,7 +41,7 @@ void cyclic_master_send(double **P, int num_particles, int num_processes, int av
 		MPI_Send(&pId, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD);
 		MPI_Send(&total_p_send, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD);
 		while (pId < num_particles) {
-			LOG(("Master Node: Send particle %f to node %d\n", P[pId][ID_COL], i));
+			//LOG(("Master Node: Send particle %f to node %d\n", P[pId][ID_COL], i));
 			MPI_Send(&P[pId][0], PARTICLE_PROPERTIES_COUNT, MPI_DOUBLE, i, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD);
 			pId += num_processes - 1;
 		}
@@ -56,7 +56,7 @@ void cyclic_master_receive(double **P_force, int num_processes) {
 
 	for (i = 1; i < num_processes; ++i) {
 		MPI_Recv(&force_cnt, 1, MPI_INT, i, SLAVE_TO_MASTER_TAG, MPI_COMM_WORLD, &status);
-		// LOG(("Master Node: Receive %d force(s) to from Slave Node %d...\n", force_cnt, i));
+		//LOG(("Master Node: Receive %d force(s) to from Slave Node %d...\n", force_cnt, i));
 		for (j = 0; j < force_cnt; ++j) {
 			MPI_Recv(force_buffer, FORCE_PROPERTIES_COUNT, MPI_DOUBLE, i, SLAVE_TO_MASTER_TAG, MPI_COMM_WORLD, &status);
 			to_force = (int)force_buffer[TO_COL];
