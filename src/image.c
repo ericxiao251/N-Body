@@ -55,9 +55,9 @@ void initilize_img(unsigned char* image, int img_width, int img_height) {
 
 	for (i = 0; i < img_height; ++i) {
 		for (j = 0; j < img_width; ++j) {
-			image[(j * img_width + i) * 3 + 0] = (unsigned char)0;
-			image[(j * img_width + i) * 3 + 1] = (unsigned char)0;
-			image[(j * img_width + i) * 3 + 2] = (unsigned char)0;
+			image[(i * img_width + j) * 3 + 0] = (unsigned char)0;
+			image[(i * img_width + j) * 3 + 1] = (unsigned char)0;
+			image[(i * img_width + j) * 3 + 2] = (unsigned char)0;
 		}
 	}
 }
