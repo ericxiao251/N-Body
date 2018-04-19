@@ -1,4 +1,0 @@
-"Usage: %s numParticlesLight numParticleMedium numParticleHeavy numSteps subSteps timeSubStep imageWidth imageHeight imageFilenamePrefix\n", argv[0]);
-
-mpirun -np 4 x.project 2 2 2 1 1 1 1024 1024 "000.bmp"
-
