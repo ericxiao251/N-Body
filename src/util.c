@@ -57,7 +57,7 @@ void print_properties_h(void) {
 	LOG(("  %f <=   mass   <= %f\n", massHeavyMin, massHeavyMax));
 }
 
-void print_particle(double *p, int time) {
+void print_particle(double *p, double time) {
 	LOG(("{\n"));
 	LOG(("\tparticle_id: %f,\n", p[ID_COL]));
 	LOG(("\tparticle_type: %f,\n", p[TYPE_COL]));
@@ -83,7 +83,7 @@ void print_particle(double *p, int time) {
 	return;
 }
 
-void print_all_particles(double **P, int numParticle, int time) {
+void print_all_particles(double **P, int numParticle, double time) {
 	int i;
 	LOG(("{\n"));
 	LOG(("t,p_id,mass,p_x,p_y,v_x,v_y\n"));
