@@ -21,7 +21,7 @@ const double G = 6.673e-11;
 int my_rank;
 int num_processes; // number of processes
 
-MPI_Datatype vectorMPI;
+//MPI_Datatype vectorMPI;
 
 vector *velocities = NULL;
 
@@ -106,8 +106,8 @@ int main(int argc, char* argv[]){
         velocities = (vector *)malloc(num_particles*sizeof(vector));
     }
 
-    MPI_Type_contiguous(DIM, MPI_DOUBLE, &vectorMPI);
-    MPI_Type_commit(&vectorMPI);
+    //MPI_Type_contiguous(DIM, MPI_DOUBLE, &vectorMPI);
+    //MPI_Type_commit(&vectorMPI);
 
     // Generate particles
     Generate_Init_Conditions(types, masses, positions, my_velocities, numParticlesLight, numParticleMedium, numParticleHeavy, num_particles, chunk);
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]){
             Update_Particles(my_particles, masses, my_forces, my_positions, my_velocities, num_particles, chunk, delta_t);
         }
 
-        MPI_Allgather(MPI_IN_PLACE, chunk, vectorMPI, positions, chunk, vectorMPI, MPI_COMM_WORLD);
+        MPI_Allgather(MPI_IN_PLACE, DIM*chunk, MPI_DOUBLE, positions, DIM*chunk, MPI_DOUBLE, MPI_COMM_WORLD);
 
         // Save BMP
         initilize_img(image, img_width, img_height);
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]){
         fprintf(stderr, "%d,%d,%d,%.5f\n",num_particles,num_steps,num_processes,end_time-start_time);
     }
 
-    MPI_Type_free(&vectorMPI);
+    //MPI_Type_free(&vectorMPI);
     free(masses);
     free(positions);
     free(my_forces);
@@ -271,14 +271,14 @@ void Generate_Init_Conditions(int types[], double masses[], vector positions[], 
 
     MPI_Bcast(types, num_particles, MPI_INT, MASTER, MPI_COMM_WORLD);
     MPI_Bcast(masses, num_particles, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(positions, num_particles, vectorMPI, MASTER, MPI_COMM_WORLD);
-    MPI_Scatter(velocities, chunk, vectorMPI, my_velocities, chunk, vectorMPI, MASTER, MPI_COMM_WORLD);
+    MPI_Bcast(positions, DIM*num_particles, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
+    MPI_Scatter(velocities, DIM*chunk, MPI_DOUBLE, my_velocities, DIM*chunk, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
 }
 
 void Output_State(double time, double masses[], vector positions[], vector my_velocities[], int num_particles, int chunk) {
     int part;
 
-    MPI_Gather(my_velocities, chunk, vectorMPI, velocities, chunk, vectorMPI, MASTER, MPI_COMM_WORLD);
+    MPI_Gather(my_velocities, DIM*chunk, MPI_DOUBLE, velocities, DIM*chunk, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
     if (my_rank == MASTER) {
         printf("Current time:%.2f\n", time);
         for (part = 0; part < num_particles; part++) {
@@ -295,7 +295,7 @@ void Output_State(double time, double masses[], vector positions[], vector my_ve
 void update_state(unsigned char* image, int types[], double masses[], vector positions[], vector my_velocities[], int num_particles, int chunk) {
     int part;
 
-    MPI_Gather(my_velocities, chunk, vectorMPI, velocities, chunk, vectorMPI, MASTER, MPI_COMM_WORLD);
+    MPI_Gather(my_velocities, DIM*chunk, MPI_DOUBLE, velocities, DIM*chunk, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
     if (my_rank == MASTER) {
         for (part = 0; part < num_particles; part++) {
             update_img(image, positions[part][X], positions[part][Y], types[part], img_width, img_height);
@@ -377,7 +377,7 @@ void Update_Particles(int my_particles, double masses[], vector my_forces[], vec
 
 void Generate_Output_File(double masses[], vector positions[], vector my_velocities[], int num_particles, int chunk){
     int line;
-    MPI_Gather(my_velocities, chunk, vectorMPI, velocities, chunk, vectorMPI, MASTER, MPI_COMM_WORLD);
+    MPI_Gather(my_velocities, DIM*chunk, MPI_DOUBLE, velocities, DIM*chunk, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
     if(my_rank==MASTER){
         FILE *fp_generate_output = fopen("generate_output.txt","w+");
         if(!fp_generate_output){
