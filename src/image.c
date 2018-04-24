@@ -79,25 +79,27 @@ void paint_square(unsigned char* image, int i, int j, int img_width, int img_hei
     }
 }
 
-int update_img(unsigned char* image, double *p, int img_width, int img_height) {
+//int update_img(unsigned char* image, double *p, int img_width, int img_height) {
+int update_img(unsigned char* image, double p_x, double p_y, int type, int img_width, int img_height) {
 	// POS_MAX_X POS_MIN_X POS_MAX_Y POS_MIN_Y
-	int x = (int)(img_width * p[POS_X_COL] / (double)X_RNG);
-	int y = (int)(img_height * p[POS_Y_COL] / (double)Y_RNG);
+	int x = (int)(img_width * p_x / (double)X_RNG);
+	int y = (int)(img_height * p_y / (double)Y_RNG);
+		printf("update_img p_x: %f p_y: %f | x: %d y: %d \n", p_x, p_y, x, y);
 	if (x < 0 || y < 0 || x >= img_width || y >= img_height) {
 		// Out of range
 		return 0;
 	}
 
 	unsigned char r, g, b;
-	r = p[TYPE_COL] == LIGHT ? LIGHT_R :
-		p[TYPE_COL] == MEDIUM ? MEDIUM_R :
-		p[TYPE_COL] == HEAVY ? HEAVY_R : 0;
-	g = p[TYPE_COL] == LIGHT ? LIGHT_G :
-		p[TYPE_COL] == MEDIUM ? MEDIUM_G :
-		p[TYPE_COL] == HEAVY ? HEAVY_G : 0;
-	b = p[TYPE_COL] == LIGHT ? LIGHT_B :
-		p[TYPE_COL] == MEDIUM ? MEDIUM_B :
-		p[TYPE_COL] == HEAVY ? HEAVY_B : 0;
+	r = type == LIGHT ? LIGHT_R :
+		type == MEDIUM ? MEDIUM_R :
+		type == HEAVY ? HEAVY_R : 0;
+	g = type == LIGHT ? LIGHT_G :
+		type == MEDIUM ? MEDIUM_G :
+		type == HEAVY ? HEAVY_G : 0;
+	b = type == LIGHT ? LIGHT_B :
+		type == MEDIUM ? MEDIUM_B :
+		type == HEAVY ? HEAVY_B : 0;
 
 	paint_square(image, y, x, img_width, img_height, PARTICLE_R, r, g, b);
 	//image[(y * img_width + x) * 3 + 0] = r;

@@ -19,7 +19,7 @@ typedef double vector[DIM];
 const double G = 6.673e-11;
 
 int my_rank;
-int size; // number of processes
+int num_processes; // number of processes
 
 MPI_Datatype vectorMPI;
 
@@ -39,45 +39,72 @@ void Generate_Output_File(double masses[], vector positions[], vector my_velocit
 
 //main program
 int main(int argc, char* argv[]){
-    int numParticlesLight;
-    int numParticleMedium;
-    int numParticleHeavy;
-    int num_particles;
+    srand (1234);
 
-    int chunk;
-    int num_steps;
-    int steps;
-    int my_particles;
-    int output_freq;
-    double delta_t;
-    double time;
-    double *masses;
-    int *types;
-    vector* my_positions;
-    vector* positions;
-    vector* my_velocities;
-    vector* my_forces;
+    int numParticlesLight, numParticleMedium, numParticleHeavy, num_particles;
 
-    double start_time;
-    double end_time;
+    int chunk, num_steps, steps, subSteps, my_particles, output_freq, *types;
+    double delta_t, time, *masses;
 
+    vector* my_positions, * positions, * my_velocities, * my_forces;
+
+    double start_time, end_time;
+
+    // MPI bookkeeping
     MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &num_processes);
 
     // Get input
-    Get_Input_Arguments(argc, argv, &numParticlesLight, &numParticleMedium, &numParticleHeavy, &num_particles, &num_steps, &delta_t, &output_freq);
-    chunk=num_particles/size;
+    //if (argc != 10) {
+    //    printf("Usage: %s numParticlesLight numParticleMedium numParticleHeavy numSteps subSteps timeSubStep imageWidth imageHeight imageFilenamePrefix\n", argv[0]);
+    //}
+    if(my_rank == MASTER){
+        numParticlesLight = atoi(argv[1]);
+        numParticleMedium = atoi(argv[2]);
+        numParticleHeavy = atoi(argv[3]);
+        num_steps = atoi(argv[4]);
+        subSteps = atoi(argv[5]); // Doesn't use right now
+        delta_t = strtod(argv[6], NULL);
+        //img_width = atoi(argv[7]);
+        //img_height = atoi(argv[8]);
 
-    types = malloc(num_particles*sizeof(int));
-    masses = malloc(num_particles*sizeof(double));
-    positions = malloc(num_particles*sizeof(vector));
-    my_forces = malloc(chunk*sizeof(vector));
+        num_particles = numParticlesLight + numParticleMedium + numParticleHeavy;
+        output_freq = 1; // default
+    }
+
+    MPI_Bcast(&num_particles, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
+    MPI_Bcast(&num_steps, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
+    MPI_Bcast(&delta_t, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
+    MPI_Bcast(&output_freq, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
+
+    #  ifdef DEBUG_GET_ARGUMENT
+    if (my_rank == 0) {
+        printf("num_particles = %d\n", num_particles);
+        printf("num_steps = %d\n", num_steps);
+        printf("delta_t = %e\n", delta_t);
+        printf("output_freq = %d\n", output_freq);
+    }
+    #  endif
+
+    // Distribute
+    int have_extra = num_particles % num_processes;
+
+    int padding_num = (have_extra == 0) ? 0 : num_processes - have_extra;
+    num_particles += padding_num;
+    chunk = num_particles / num_processes;
+
+
+    types = (int *)malloc(num_particles*sizeof(int));
+    masses = (double *)malloc(num_particles*sizeof(double));
+    positions = (vector *)malloc(num_particles*sizeof(vector));
+    my_forces = (vector *)malloc(chunk*sizeof(vector));
     my_positions = positions + my_rank*chunk;
-    my_velocities = malloc(chunk*sizeof(vector));
+    my_velocities = (vector *)malloc(chunk*sizeof(vector));
 
-    if (my_rank == MASTER)
-        velocities = malloc(num_particles*sizeof(vector));
+    if (my_rank == MASTER) {
+        velocities = (vector *)malloc(num_particles*sizeof(vector));
+    }
 
     MPI_Type_contiguous(DIM, MPI_DOUBLE, &vectorMPI);
     MPI_Type_commit(&vectorMPI);
@@ -94,12 +121,19 @@ int main(int argc, char* argv[]){
     unsigned char* image = (unsigned char*) malloc(img_width * img_height * 3 * sizeof(unsigned char));
     for (steps = 1; steps <= num_steps; steps++) {
         time = steps*delta_t;
-        for (my_particles = 0; my_particles < chunk; my_particles++)
+        for (my_particles = 0; my_particles < chunk; my_particles++) {
+            if (types[my_particles] == DUMMY) {
+                continue;
+            }
             Compute_Force(my_particles, masses, my_forces, positions, num_particles, chunk);
+        }
 
-        for (my_particles = 0; my_particles < chunk; my_particles++)
+        for (my_particles = 0; my_particles < chunk; my_particles++) {
+            if (types[my_particles] == DUMMY) {
+                continue;
+            }
             Update_Particles(my_particles, masses, my_forces, my_positions, my_velocities, num_particles, chunk, delta_t);
-
+        }
 
         MPI_Allgather(MPI_IN_PLACE, chunk, vectorMPI, positions, chunk, vectorMPI, MPI_COMM_WORLD);
 
@@ -111,7 +145,8 @@ int main(int argc, char* argv[]){
         char img_name[100];
         char img_full_path[100];
         snprintf(img_name, sizeof(char) * 32, "_%05i.bmp", steps);
-        strcpy(img_full_path, "images/out");
+
+        strcpy(img_full_path, "../images/out");
         strcat(img_full_path, img_name);
         saveBMP(img_full_path, image, img_width, img_height);
 
@@ -119,6 +154,7 @@ int main(int argc, char* argv[]){
         if (steps % output_freq == 0)
             Output_State(time, masses, positions, my_velocities, num_particles, chunk);
         #endif
+
     }
 
     #ifdef GENERATE_OUTPUT_FILE
@@ -129,7 +165,7 @@ int main(int argc, char* argv[]){
     if(my_rank==MASTER){
         printf("Time passed = %.5f seconds\n", end_time-start_time);
         // Output to csv. num_particles, num_steps, num_processors, time taken (s)
-        fprintf(stderr, "%d,%d,%d,%.5f\n",num_particles,num_steps,size,end_time-start_time);
+        fprintf(stderr, "%d,%d,%d,%.5f\n",num_particles,num_steps,num_processes,end_time-start_time);
     }
 
     MPI_Type_free(&vectorMPI);
@@ -144,36 +180,6 @@ int main(int argc, char* argv[]){
     return 0;
 }
 
-void Get_Input_Arguments(int argc, char* argv[], int* numParticlesLight, int* numParticleMedium, int* numParticleHeavy, int* num_particles, int* num_steps, double* delta_t, int* output_freq){
-    if(my_rank==MASTER){
-        int light = strtol(argv[1], NULL, 10);
-        int medium = strtol(argv[2], NULL, 10);
-        int heavy = strtol(argv[3], NULL, 10);
-        *num_steps = strtol(argv[4], NULL, 10);
-        int subSteps = atoi(argv[5]); // Doesn't use right now
-        *delta_t = strtod(argv[6], NULL);
-
-        *numParticlesLight = light;
-        *numParticleMedium = medium;
-        *numParticleHeavy = heavy;
-        *num_particles = light + medium + heavy;
-        *output_freq = 1;
-    }
-
-    MPI_Bcast(num_particles, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(num_steps, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(delta_t, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-    MPI_Bcast(output_freq, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-
-#  ifdef DEBUG_GET_ARGUMENT
-    if (my_rank == 0) {
-        printf("num_particles = %d\n", *num_particles);
-        printf("num_steps = %d\n", *num_steps);
-        printf("delta_t = %e\n", *delta_t);
-        printf("output_freq = %d\n", *output_freq);
-    }
-#  endif
-}
 
 void Generate_Init_Conditions(int types[], double masses[], vector positions[], vector my_velocities[], int numParticlesLight, int numParticleMedium, int numParticleHeavy, int num_particles, int chunk){
     int part;
@@ -185,7 +191,8 @@ void Generate_Init_Conditions(int types[], double masses[], vector positions[], 
 
     if (my_rank == MASTER) {
         // light particles
-        for (part = 0; part < num_particles; part++) {
+        //for (part = 0; part < num_particles; part++) { // BUG ?
+        for (part = 0; part < numParticlesLight; ++part) {
             types[part] = LIGHT;
             masses[part] = massLightMin + (massLightMax - massLightMin) * drand48();
             positions[part][X] = POS_MIN_X + (POS_MAX_X - POS_MIN_X) * drand48();
@@ -200,8 +207,9 @@ void Generate_Init_Conditions(int types[], double masses[], vector positions[], 
             velocities[part][X] = rand_v * cos(rand_deg);
             velocities[part][Y] = rand_v * sin(rand_deg);
         }
+
         // medium particles
-        for (part = numParticlesLight; part < numParticlesLight+numParticleMedium; part++) {
+        for (part = numParticlesLight; part < numParticlesLight+numParticleMedium; ++part) {
             types[part] = MEDIUM;
             masses[part] = massMediumMin + (massMediumMax - massMediumMin) * drand48();
             positions[part][X] = POS_MIN_X + (POS_MAX_X - POS_MIN_X) * drand48();
@@ -216,8 +224,9 @@ void Generate_Init_Conditions(int types[], double masses[], vector positions[], 
             velocities[part][X] = rand_v * cos(rand_deg);
             velocities[part][Y] = rand_v * sin(rand_deg);
         }
+
         // heavy particles
-        for (part = numParticlesLight+numParticleMedium; part < num_particles; part++) {
+        for (part = numParticlesLight+numParticleMedium; part < numParticlesLight+numParticleMedium+numParticleHeavy; ++part) {
             types[part] = HEAVY;
             masses[part] = massHeavyMin + (massLightMax - massHeavyMin) * drand48();
             positions[part][X] = POS_MIN_X + (POS_MAX_X - POS_MIN_X) * drand48();
@@ -233,6 +242,18 @@ void Generate_Init_Conditions(int types[], double masses[], vector positions[], 
             velocities[part][Y] = rand_v * sin(rand_deg);
         }
 
+        // padding particles
+        for (part = numParticlesLight+numParticleMedium+numParticleHeavy; part < num_particles; ++part) {
+            types[part] = DUMMY;
+            masses[part] = 0;
+            positions[part][X] = 0;
+            positions[part][Y] = 0;
+
+            // generate velocities
+            velocities[part][X] = 0;
+            velocities[part][Y] = 0;
+        }
+        
         #ifdef GENERATE_INPUT_FILE
         FILE *fp_generate = fopen("generate_input.txt","w+");
         if(!fp_generate){
@@ -246,8 +267,6 @@ void Generate_Init_Conditions(int types[], double masses[], vector positions[], 
 
         fclose(fp_generate);
         #endif
-
-
     }
 
     MPI_Bcast(types, num_particles, MPI_INT, MASTER, MPI_COMM_WORLD);
@@ -301,12 +320,15 @@ void Compute_Force(int my_particles, double masses[], vector my_forces[], vector
 
     for (k = 0; k < num_particles; k++) {
         if (k != part) {
+            if (masses[k] <= 0) {
+                continue;
+            }
             f_part_k[X] = positions[part][X] - positions[k][X];
             f_part_k[Y] = positions[part][Y] - positions[k][Y];
 
 
-           len=sqrt(pow(f_part_k[X],2)+pow(f_part_k[Y],2));
-           len_3=pow(len,3);
+            len=sqrt(pow(f_part_k[X],2)+pow(f_part_k[Y],2));
+            len_3=pow(len,3);
 
 
             m_g = G*masses[part]*masses[k];
