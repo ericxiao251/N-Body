@@ -43,8 +43,10 @@
 *.idb
 *.pdb
 
-# CSV files
-*.csv
+# Project Specific
+data/
+images/
+timing/
 
 # Kernel Module Compile Results
 *.mod*
