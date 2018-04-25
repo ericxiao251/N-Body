@@ -113,7 +113,8 @@ void update(unsigned char* image, double **P, double **P_force, int total_p_cnt,
 		update_p(P[i], P_force[(int)(P[i][ID_COL])], step_size);
 		// Only regenerate the whole image when necessary
 		if (regenerate_img) {
-			int in_img_rng = update_img(image, P[i], img_width, img_height);
+			//int in_img_rng = update_img(image, P[i], img_width, img_height);
+			int in_img_rng = update_img(image, P[i][POS_X_COL], P[i][POS_Y_COL], (int)P[i][TYPE_COL], img_width, img_height);
 			if (in_img_rng) {
 				// if the particle is still in image range, update cnt
 				++cnt;
