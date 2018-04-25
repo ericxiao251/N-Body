@@ -43,20 +43,20 @@ def run():
 		# f.write(header)
 
 		for t in range(time + 1):
-			for p in range(number_of_particles):
-				results = "{:d},{:d},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f}\n"\
-				.format(t * h, p, masses[p],
-					positions_x[p], positions_y[p],
-					velocities_x[p], velocities_y[p]
-				)
-				f.write(results)
-				# print(s)
+			if t == time:
+				for p in range(number_of_particles):
+					results = "{:d},{:d},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f}\n"\
+					.format(t * h, p, masses[p],
+						positions_x[p], positions_y[p],
+						velocities_x[p], velocities_y[p]
+					)
+					f.write(results)
 
 			compute()
 
 def compare():
 	difference = []
-	with open("data/theoretical.csv", "r") as file1, open("data/actual.csv", "r") as file2:
+	with open("data/theoretical.csv", "r") as file1, open("data/output_file.csv", "r") as file2:
 		for line1, line2 in zip(file1, file2):
 			if line1 != line2:
 
@@ -82,18 +82,18 @@ if __name__ == '__main__':
 	EPISLON = 0.000000000000000222
 
 	# change these up values
-	number_of_particles = 300
+	number_of_particles = 2000
 	time = 10
 	h = 1
 
 	header = ["t","p_id","mass","p_x","p_y","v_x","v_y"]
-	df = pd.read_csv('data/actual.csv', header=None, names=header)
+	df = pd.read_csv('data/input_file.csv', header=None, names=header)
 
-	masses = df['mass'].tolist()[:number_of_particles]
-	velocities_x = df['v_x'].tolist()[:number_of_particles]
-	velocities_y = df['v_y'].tolist()[:number_of_particles]
-	positions_x = df['p_x'].tolist()[:number_of_particles]
-	positions_y = df['p_y'].tolist()[:number_of_particles]
+	masses = df['mass'].tolist()
+	velocities_x = df['v_x'].tolist()
+	velocities_y = df['v_y'].tolist()
+	positions_x = df['p_x'].tolist()
+	positions_y = df['p_y'].tolist()
 	forces_x = [0] * number_of_particles
 	forces_y = [0] * number_of_particles
 
