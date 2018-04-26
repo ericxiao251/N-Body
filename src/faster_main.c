@@ -250,7 +250,7 @@ void Generate_Init_Conditions(int types[], double masses[], vector positions[], 
 
     for(line = 0; line < num_particles; line++){
       fprintf(fp_generate, "%lf,%d,%lf,%lf,%lf,%lf,%lf\n",
-        0, line, masses[line],
+        (double) 0, line, masses[line],
         positions[line][X], positions[line][Y],
         velocities[line][X], velocities[line][Y]
       );

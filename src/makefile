@@ -3,7 +3,7 @@ CFLAGS=-c -g -Wall -std=c++11
 LDFLAGS=-lm
 OBJECTS=$(SOURCES:.cpp=.o)
 
-SOURCES=main.cpp image.c util.c cyclic_dist.c physics.c
+SOURCES=faster_main.c image.c util.c cyclic_dist.c physics.c
 
 EXECUTABLE=project.x
 
